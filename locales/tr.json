@@ -64,5 +64,8 @@
   "login.email": "E-posta",
   "login.emailPlaceholder": "ornek@firma.com",
   "login.password": "Şifre",
-  "login.submit": "Giriş yap"
+  "login.submit": "Giriş yap",
+  "login.noAccount": "Hesabın yok mu?",
+  "login.requestAccess": "Erişim talep et",
+  "login.copyright": "© 2026 PortReady"
 }

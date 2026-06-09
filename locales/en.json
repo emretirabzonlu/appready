@@ -64,5 +64,8 @@
   "login.email": "Email",
   "login.emailPlaceholder": "name@company.com",
   "login.password": "Password",
-  "login.submit": "Sign in"
+  "login.submit": "Sign in",
+  "login.noAccount": "Don't have an account?",
+  "login.requestAccess": "Request access",
+  "login.copyright": "© 2026 PortReady"
 }
