@@ -10,6 +10,7 @@
   "nav.reports": "Reports",
   "nav.fleet": "Fleet",
   "nav.settings": "Settings",
+  "nav.comingSoon": "Soon",
 
   "search.placeholder": "Search vessel by IMO",
 
@@ -26,6 +27,8 @@
   "ship.dwt": "DWT",
   "ship.class": "Class",
   "ship.ismManager": "ISM Manager",
+  "ship.list.empty": "No vessels yet — add one with an IMO number",
+  "ship.backToList": "Vessels",
 
   "metric.inspections": "Inspections",
   "metric.detentions": "Detentions",
@@ -59,6 +62,24 @@
   "section.analysis.desc": "Comparison of region focus areas with vessel inspection history",
   "section.inspections.title": "Inspection History",
   "section.inspections.desc": "PSC inspection records sorted by date",
+
+  "dashboard.totalShips": "Total Vessels",
+  "dashboard.detained12m": "Detentions (12 Mo)",
+  "dashboard.lastInspection": "Last Inspection",
+  "dashboard.recentShips": "Recent Vessels",
+  "dashboard.recentShips.desc": "Latest vessels in your fleet",
+  "dashboard.addShip": "Add Vessel",
+  "dashboard.addShip.desc": "Search or add a vessel by IMO number",
+
+  "settings.title": "Settings",
+  "settings.language": "Interface Language",
+  "settings.language.desc": "Select the application language",
+  "settings.language.tr": "Türkçe",
+  "settings.language.en": "English",
+  "settings.company": "Company Profile",
+  "settings.company.desc": "Organisation information",
+  "settings.company.placeholder": "Company settings configuration will be available soon.",
+  "settings.logout": "Sign out",
 
   "login.title": "Sign In",
   "login.email": "Email",

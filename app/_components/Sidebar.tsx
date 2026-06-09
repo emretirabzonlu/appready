@@ -12,12 +12,19 @@ import { t } from '@/lib/i18n'
 import type { TranslationKey } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
-const navItems: { key: TranslationKey; href: string; Icon: React.ElementType }[] = [
-  { key: 'nav.dashboard', href: '/',        Icon: LayoutDashboard },
-  { key: 'nav.ships',     href: '/ship',    Icon: Ship },
-  { key: 'nav.reports',   href: '/reports', Icon: FileText },
-  { key: 'nav.fleet',     href: '/fleet',   Icon: Anchor },
-  { key: 'nav.settings',  href: '/settings',Icon: Settings },
+type NavItem = {
+  key: TranslationKey
+  href: string
+  Icon: React.ElementType
+  passive?: boolean
+}
+
+const navItems: NavItem[] = [
+  { key: 'nav.dashboard', href: '/dashboard', Icon: LayoutDashboard },
+  { key: 'nav.ships',     href: '/ship',      Icon: Ship },
+  { key: 'nav.reports',   href: '/reports',   Icon: FileText,        passive: true },
+  { key: 'nav.fleet',     href: '/fleet',     Icon: Anchor,          passive: true },
+  { key: 'nav.settings',  href: '/settings',  Icon: Settings },
 ]
 
 export function Sidebar() {
@@ -25,8 +32,23 @@ export function Sidebar() {
 
   return (
     <nav className="w-56 shrink-0 bg-navy-900 flex flex-col pt-2 pb-4 border-r border-navy-700">
-      {navItems.map(({ key, href, Icon }) => {
-        const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
+      {navItems.map(({ key, href, Icon, passive }) => {
+        if (passive) {
+          return (
+            <div
+              key={href}
+              className="flex items-center gap-3 mx-2 px-3 py-2 rounded-sm text-sm text-white/25 cursor-default select-none"
+            >
+              <Icon size={17} className="shrink-0" />
+              <span className="flex-1">{t(key)}</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-white/30 leading-none">
+                {t('nav.comingSoon')}
+              </span>
+            </div>
+          )
+        }
+
+        const active = pathname.startsWith(href)
         return (
           <Link
             key={href}

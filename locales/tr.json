@@ -10,6 +10,7 @@
   "nav.reports": "Raporlar",
   "nav.fleet": "Filo",
   "nav.settings": "Ayarlar",
+  "nav.comingSoon": "Yakında",
 
   "search.placeholder": "IMO ile gemi ara",
 
@@ -26,6 +27,8 @@
   "ship.dwt": "DWT",
   "ship.class": "Klas",
   "ship.ismManager": "ISM Yöneticisi",
+  "ship.list.empty": "Henüz gemi yok — IMO numarasıyla ekleyin",
+  "ship.backToList": "Gemiler",
 
   "metric.inspections": "Denetim",
   "metric.detentions": "Tutulma",
@@ -59,6 +62,24 @@
   "section.analysis.desc": "Bölge odak alanları ile gemi denetim geçmişinin karşılaştırması",
   "section.inspections.title": "Denetim Geçmişi",
   "section.inspections.desc": "Tarihe göre sıralı PSC denetim kayıtları",
+
+  "dashboard.totalShips": "Toplam Gemi",
+  "dashboard.detained12m": "Tutulma (12 Ay)",
+  "dashboard.lastInspection": "Son Denetim",
+  "dashboard.recentShips": "Son Gemiler",
+  "dashboard.recentShips.desc": "Filo listenizdeki son gemiler",
+  "dashboard.addShip": "Gemi Ekle",
+  "dashboard.addShip.desc": "IMO numarasıyla gemi arayın veya ekleyin",
+
+  "settings.title": "Ayarlar",
+  "settings.language": "Arayüz Dili",
+  "settings.language.desc": "Uygulama dilini seçin",
+  "settings.language.tr": "Türkçe",
+  "settings.language.en": "English",
+  "settings.company": "Şirket Profili",
+  "settings.company.desc": "Organizasyon bilgileri",
+  "settings.company.placeholder": "Şirket bilgileri yapılandırması yakında eklenecek.",
+  "settings.logout": "Çıkış yap",
 
   "login.title": "Giriş",
   "login.email": "E-posta",

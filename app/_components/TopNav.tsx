@@ -11,7 +11,7 @@ export function TopNav() {
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     const q = query.trim()
-    if (q) router.push(`/ship?imo=${encodeURIComponent(q)}`)
+    if (q) router.push(`/ship/${encodeURIComponent(q)}`)
   }
 
   return (

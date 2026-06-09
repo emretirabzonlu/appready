@@ -13,10 +13,9 @@ export function RegionSelect({ regions, imo, currentMou }: Props) {
   const router = useRouter()
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const params = new URLSearchParams()
-    if (imo) params.set('imo', imo)
-    if (e.target.value) params.set('mou', e.target.value)
-    router.push(`/ship?${params.toString()}`)
+    const mou = e.target.value
+    const qs = mou ? `?mou=${encodeURIComponent(mou)}` : ''
+    router.push(`/ship/${encodeURIComponent(imo)}${qs}`)
   }
 
   return (
