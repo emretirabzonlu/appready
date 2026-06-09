@@ -95,6 +95,8 @@
 
   "fleet.title": "Filo",
   "fleet.subtitle": "Filo genelinde PSC performans özeti",
+  "fleet.table.title": "Gemiler",
+  "fleet.table.desc": "Riske göre sıralı — yüksek öncelikli gemiler üstte",
   "fleet.totalShips": "Toplam Gemi",
   "fleet.highRisk": "Yüksek Riskli",
   "fleet.totalDetentions": "Toplam Tutulma",

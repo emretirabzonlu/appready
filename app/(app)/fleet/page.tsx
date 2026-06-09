@@ -51,8 +51,8 @@ export default async function FleetPage() {
       <FadeUp delay={0.08}>
         <SectionHeader
           step={1}
-          title={t('fleet.title')}
-          description={t('fleet.subtitle')}
+          title={t('fleet.table.title')}
+          description={t('fleet.table.desc')}
           className="mb-4"
         />
         <FleetTable ships={ships} />

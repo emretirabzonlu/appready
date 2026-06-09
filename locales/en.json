@@ -95,6 +95,8 @@
 
   "fleet.title": "Fleet",
   "fleet.subtitle": "Fleet-wide PSC performance summary",
+  "fleet.table.title": "Vessels",
+  "fleet.table.desc": "Sorted by risk — highest priority vessels first",
   "fleet.totalShips": "Total Vessels",
   "fleet.highRisk": "High Risk",
   "fleet.totalDetentions": "Total Detentions",
