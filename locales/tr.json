@@ -34,7 +34,7 @@
   "metric.detentions": "Tutulma",
   "metric.longestGap": "En uzun aralık",
   "metric.longestGapUnit": "gün",
-  "metric.targetRegion": "Hedef bölge",
+  "metric.targetRegion": "Varış Limanı MoU",
 
   "inspection.title": "Denetimler",
   "inspection.authority": "Otorite",
@@ -45,6 +45,9 @@
 
   "analysis.selectRegion": "— Bölge seçin —",
   "analysis.targetRegion": "Hedef Bölge",
+
+  "port.select": "— Varış limanı seçin —",
+  "port.label": "Varış Limanı",
   "analysis.title": "Çakışma Analizi",
   "analysis.noShipType": "Gemi tipi bilinmediğinden bölge karşılaştırması yapılamıyor.",
   "analysis.riskAlert": "{count} yüksek riskli kategori tespit edildi — hem bölgenin denetlediği hem bu geminin zayıf olduğu alanlar işaretlendi.",

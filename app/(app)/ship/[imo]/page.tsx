@@ -1,10 +1,10 @@
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
-import { RegionSelect } from '../_components/RegionSelect'
+import { PortSelect } from '../_components/PortSelect'
 import { FadeUp } from '@/app/_components/ui/motion'
 import { getShipByImo, getInspectionsByShip, getDeficiencies } from '@/lib/ships'
 import type { Inspection, Deficiency } from '@/lib/ships'
-import { getMouRegions } from '@/lib/mou'
+import { getPorts } from '@/lib/ports'
 import { getBaselines } from '@/lib/baselines'
 import { ShipHero } from '@/app/_components/ui/ShipHero'
 import { MetricCard } from '@/app/_components/ui/MetricCard'
@@ -22,14 +22,14 @@ export default async function ShipDetailPage({
   searchParams,
 }: {
   params: Promise<{ imo: string }>
-  searchParams: Promise<{ mou?: string }>
+  searchParams: Promise<{ port?: string }>
 }) {
   const { imo } = await params
-  const { mou } = await searchParams
+  const { port } = await searchParams
 
-  const [ship, regions] = await Promise.all([
+  const [ship, ports] = await Promise.all([
     getShipByImo(imo),
-    getMouRegions(),
+    getPorts(),
   ])
 
   if (!ship) {
@@ -57,8 +57,12 @@ export default async function ShipDetailPage({
     })),
   )
 
-  const baselines = mou && ship.ship_type
-    ? await getBaselines(mou, ship.ship_type)
+  const selectedPort = port ? ports.find((p) => p.id === port) ?? null : null
+  const mouRegionId = selectedPort?.mou_region_id ?? null
+  const selectedMouName = selectedPort?.mou_regions?.name ?? null
+
+  const baselines = mouRegionId && ship.ship_type
+    ? await getBaselines(mouRegionId, ship.ship_type)
     : []
 
   // Category counts across all inspections
@@ -85,8 +89,6 @@ export default async function ShipDetailPage({
       if (gap > longestGapDays) longestGapDays = gap
     }
   }
-  const selectedRegionName = regions.find((r) => r.id === mou)?.name
-
   const riskLevel: RiskLevel =
     inspectionCount === 0 ? 'neutral' :
     detentionCount >= 2 ? 'danger' :
@@ -118,7 +120,7 @@ export default async function ShipDetailPage({
           ship={ship}
           riskLevel={riskLevel}
           riskLabel={riskLabel}
-          selectedRegionName={selectedRegionName}
+          selectedRegionName={selectedMouName ?? undefined}
         />
 
         {/* Metrics */}
@@ -142,19 +144,28 @@ export default async function ShipDetailPage({
           />
           <MetricCard
             label={t('metric.targetRegion')}
-            value={selectedRegionName ?? '—'}
+            value={selectedMouName ?? '—'}
             variant="navy"
           />
         </div>
 
-        {/* Region selector */}
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-text">{t('analysis.targetRegion')}:</span>
-          <RegionSelect regions={regions} imo={imo} currentMou={mou ?? ''} />
+        {/* Port selector */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-text">{t('port.label')}:</span>
+            <PortSelect ports={ports} imo={imo} currentPort={port ?? ''} />
+          </div>
+          {selectedPort && (
+            <p className="text-xs text-text-muted pl-0.5">
+              {selectedPort.name}
+              {selectedPort.country ? ` · ${selectedPort.country}` : ''}
+              {selectedMouName ? ` · ${selectedMouName}` : ''}
+            </p>
+          )}
         </div>
 
         {/* Gap analysis */}
-        {mou && (
+        {mouRegionId && (
           <div>
             <SectionHeader
               step={1}
@@ -179,8 +190,8 @@ export default async function ShipDetailPage({
                   <Card className="p-4">
                     <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">
                       {t('analysis.regionProfile')}
-                      {selectedRegionName && (
-                        <span className="ml-2 normal-case font-normal">{selectedRegionName}</span>
+                      {selectedMouName && (
+                        <span className="ml-2 normal-case font-normal">{selectedMouName}</span>
                       )}
                     </h4>
                     {baselines.length === 0 ? (
@@ -264,7 +275,7 @@ export default async function ShipDetailPage({
         {/* Inspections */}
         <div>
           <SectionHeader
-            step={mou ? 2 : 1}
+            step={mouRegionId ? 2 : 1}
             title={t('section.inspections.title')}
             description={t('section.inspections.desc')}
           />

@@ -34,7 +34,7 @@
   "metric.detentions": "Detentions",
   "metric.longestGap": "Longest gap",
   "metric.longestGapUnit": "days",
-  "metric.targetRegion": "Target region",
+  "metric.targetRegion": "Arrival Port MoU",
 
   "inspection.title": "Inspections",
   "inspection.authority": "Authority",
@@ -45,6 +45,9 @@
 
   "analysis.selectRegion": "— Select region —",
   "analysis.targetRegion": "Target Region",
+
+  "port.select": "— Select arrival port —",
+  "port.label": "Arrival Port",
   "analysis.title": "Gap Analysis",
   "analysis.noShipType": "Cannot compare regions without a known ship type.",
   "analysis.riskAlert": "{count} high-risk categories detected — highlighted where both region focus and vessel weakness overlap.",
