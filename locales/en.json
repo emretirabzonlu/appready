@@ -91,5 +91,21 @@
   "login.submit": "Sign in",
   "login.noAccount": "Don't have an account?",
   "login.requestAccess": "Request access",
-  "login.copyright": "© 2026 PortReady"
+  "login.copyright": "© 2026 PortReady",
+
+  "fleet.title": "Fleet",
+  "fleet.subtitle": "Fleet-wide PSC performance summary",
+  "fleet.totalShips": "Total Vessels",
+  "fleet.highRisk": "High Risk",
+  "fleet.totalDetentions": "Total Detentions",
+  "fleet.recentlyInspected": "Inspected (12 Mo)",
+  "fleet.col.name": "Vessel Name",
+  "fleet.col.imo": "IMO",
+  "fleet.col.type": "Type",
+  "fleet.col.flag": "Flag",
+  "fleet.col.risk": "Risk",
+  "fleet.col.inspections": "Inspections",
+  "fleet.col.detentions": "Detentions",
+  "fleet.col.lastInspection": "Last Inspection",
+  "fleet.empty": "Fleet is empty — add a vessel by IMO number."
 }

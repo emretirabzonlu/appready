@@ -25,7 +25,7 @@ const navItems: NavItem[] = [
   { key: 'nav.dashboard', href: '/dashboard', Icon: LayoutDashboard },
   { key: 'nav.ships',     href: '/ship',      Icon: Ship },
   { key: 'nav.reports',   href: '/reports',   Icon: FileText,       passive: true },
-  { key: 'nav.fleet',     href: '/fleet',     Icon: Anchor,         passive: true },
+  { key: 'nav.fleet',     href: '/fleet',     Icon: Anchor },
   { key: 'nav.settings',  href: '/settings',  Icon: Settings },
 ]
 

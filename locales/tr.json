@@ -91,5 +91,21 @@
   "login.submit": "Giriş yap",
   "login.noAccount": "Hesabın yok mu?",
   "login.requestAccess": "Erişim talep et",
-  "login.copyright": "© 2026 PortReady"
+  "login.copyright": "© 2026 PortReady",
+
+  "fleet.title": "Filo",
+  "fleet.subtitle": "Filo genelinde PSC performans özeti",
+  "fleet.totalShips": "Toplam Gemi",
+  "fleet.highRisk": "Yüksek Riskli",
+  "fleet.totalDetentions": "Toplam Tutulma",
+  "fleet.recentlyInspected": "Son 12 Ayda Denetlendi",
+  "fleet.col.name": "Gemi Adı",
+  "fleet.col.imo": "IMO",
+  "fleet.col.type": "Tip",
+  "fleet.col.flag": "Bayrak",
+  "fleet.col.risk": "Risk",
+  "fleet.col.inspections": "Denetim",
+  "fleet.col.detentions": "Tutulma",
+  "fleet.col.lastInspection": "Son Denetim",
+  "fleet.empty": "Filo listesi boş — IMO numarasıyla gemi ekleyin."
 }
