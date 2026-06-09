@@ -29,6 +29,7 @@ export type Inspection = {
   authority: string | null
   inspection_type: string | null
   detention: boolean | null
+  duration_days: number | null
   num_deficiencies: number | null
   mou_region_id: string | null
   port_id: string | null
@@ -111,7 +112,7 @@ export async function getLastInspectionDate(): Promise<string | null> {
 export async function getInspectionsByShip(shipId: string): Promise<Inspection[]> {
   const { data, error } = await supabase
     .from('psc_inspections')
-    .select('id, ship_id, report_date, authority, inspection_type, detention, num_deficiencies, mou_region_id, port_id, mou_regions(name)')
+    .select('id, ship_id, report_date, authority, inspection_type, detention, duration_days, num_deficiencies, mou_region_id, port_id, mou_regions(name)')
     .eq('ship_id', shipId)
     .order('report_date', { ascending: false })
 

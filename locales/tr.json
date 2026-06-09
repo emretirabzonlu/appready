@@ -32,8 +32,9 @@
 
   "metric.inspections": "Denetim",
   "metric.detentions": "Tutulma",
-  "metric.longestGap": "En uzun aralık",
-  "metric.longestGapUnit": "gün",
+  "metric.longestDetention": "En uzun tutulma (gün)",
+  "metric.longestDetentionUnit": "gün",
+  "metric.detentionSub": "{total} denetimde",
   "metric.targetRegion": "Varış Limanı MoU",
 
   "inspection.title": "Denetimler",
@@ -55,6 +56,8 @@
   "analysis.shipWeaknesses": "Gemi Zayıf Noktaları",
   "analysis.allInspections": "tüm denetimler",
   "analysis.noBaseline": "Bu bölge + gemi tipi için baseline verisi bulunamadı.",
+  "analysis.baselineFallback": "tüm gemi tipleri (genel)",
+  "analysis.moreCategories": "ve {count} diğer kategori",
   "analysis.noDeficiencies": "Eksiklik kaydı bulunamadı.",
 
   "risk.low": "Düşük Risk",

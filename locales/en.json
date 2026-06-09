@@ -32,8 +32,9 @@
 
   "metric.inspections": "Inspections",
   "metric.detentions": "Detentions",
-  "metric.longestGap": "Longest gap",
-  "metric.longestGapUnit": "days",
+  "metric.longestDetention": "Longest detention (days)",
+  "metric.longestDetentionUnit": "days",
+  "metric.detentionSub": "in {total} inspections",
   "metric.targetRegion": "Arrival Port MoU",
 
   "inspection.title": "Inspections",
@@ -55,6 +56,8 @@
   "analysis.shipWeaknesses": "Vessel Weaknesses",
   "analysis.allInspections": "all inspections",
   "analysis.noBaseline": "No baseline data for this region + ship type.",
+  "analysis.baselineFallback": "all ship types (general)",
+  "analysis.moreCategories": "and {count} more categories",
   "analysis.noDeficiencies": "No deficiency records found.",
 
   "risk.low": "Low Risk",

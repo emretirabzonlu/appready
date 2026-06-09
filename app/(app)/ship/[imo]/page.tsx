@@ -5,7 +5,7 @@ import { FadeUp } from '@/app/_components/ui/motion'
 import { getShipByImo, getInspectionsByShip, getDeficiencies } from '@/lib/ships'
 import type { Inspection, Deficiency } from '@/lib/ships'
 import { getPorts } from '@/lib/ports'
-import { getBaselines } from '@/lib/baselines'
+import { getBaselines, getBaselinesFallback } from '@/lib/baselines'
 import { ShipHero } from '@/app/_components/ui/ShipHero'
 import { MetricCard } from '@/app/_components/ui/MetricCard'
 import { SectionHeader } from '@/app/_components/ui/SectionHeader'
@@ -61,9 +61,14 @@ export default async function ShipDetailPage({
   const mouRegionId = selectedPort?.mou_region_id ?? null
   const selectedMouName = selectedPort?.mou_regions?.name ?? null
 
-  const baselines = mouRegionId && ship.ship_type
+  let baselines = mouRegionId && ship.ship_type
     ? await getBaselines(mouRegionId, ship.ship_type)
     : []
+  let baselineIsFallback = false
+  if (mouRegionId && baselines.length === 0) {
+    baselines = await getBaselinesFallback(mouRegionId)
+    baselineIsFallback = baselines.length > 0
+  }
 
   // Category counts across all inspections
   const catCounts = new Map<string, number>()
@@ -79,16 +84,10 @@ export default async function ShipDetailPage({
   // Metrics
   const inspectionCount = rows.length
   const detentionCount = rows.filter((r) => r.inspection.detention).length
-  let longestGapDays = 0
-  if (rows.length >= 2) {
-    const sorted = rows
-      .map((r) => new Date(r.inspection.report_date).getTime())
-      .sort((a, b) => a - b)
-    for (let i = 1; i < sorted.length; i++) {
-      const gap = Math.floor((sorted[i] - sorted[i - 1]) / 86_400_000)
-      if (gap > longestGapDays) longestGapDays = gap
-    }
-  }
+  const longestDetentionDays = rows.reduce<number | null>((max, r) => {
+    if (!r.inspection.detention || r.inspection.duration_days == null) return max
+    return max === null || r.inspection.duration_days > max ? r.inspection.duration_days : max
+  }, null)
   const riskLevel: RiskLevel =
     inspectionCount === 0 ? 'neutral' :
     detentionCount >= 2 ? 'danger' :
@@ -100,7 +99,7 @@ export default async function ShipDetailPage({
     t('risk.low')
 
   const detentionVariant = detentionCount > 0 ? 'danger' : 'success'
-  const gapVariant = longestGapDays > 180 ? 'warning' : 'navy'
+  const detentionDaysVariant = longestDetentionDays !== null ? 'warning' : 'navy'
 
   return (
     <div className="px-6 py-8 max-w-5xl mx-auto">
@@ -133,14 +132,14 @@ export default async function ShipDetailPage({
           <MetricCard
             label={t('metric.detentions')}
             value={detentionCount}
-            sub={inspectionCount > 0 ? `${Math.round((detentionCount / inspectionCount) * 100)}%` : undefined}
+            sub={inspectionCount > 0 ? t('metric.detentionSub', { total: inspectionCount }) : undefined}
             variant={detentionVariant}
           />
           <MetricCard
-            label={t('metric.longestGap')}
-            value={longestGapDays > 0 ? longestGapDays : '—'}
-            sub={longestGapDays > 0 ? t('metric.longestGapUnit') : undefined}
-            variant={gapVariant}
+            label={t('metric.longestDetention')}
+            value={longestDetentionDays ?? '—'}
+            sub={longestDetentionDays !== null ? t('metric.longestDetentionUnit') : undefined}
+            variant={detentionDaysVariant}
           />
           <MetricCard
             label={t('metric.targetRegion')}
@@ -190,9 +189,11 @@ export default async function ShipDetailPage({
                   <Card className="p-4">
                     <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-3">
                       {t('analysis.regionProfile')}
-                      {selectedMouName && (
-                        <span className="ml-2 normal-case font-normal">{selectedMouName}</span>
-                      )}
+                      <span className="ml-2 normal-case font-normal">
+                        {baselineIsFallback
+                          ? t('analysis.baselineFallback')
+                          : (selectedMouName ?? '')}
+                      </span>
                     </h4>
                     {baselines.length === 0 ? (
                       <p className="text-xs text-text-muted">{t('analysis.noBaseline')}</p>
@@ -238,7 +239,7 @@ export default async function ShipDetailPage({
                       <p className="text-xs text-text-muted">{t('analysis.noDeficiencies')}</p>
                     ) : (
                       <ol className="space-y-1.5">
-                        {sortedShipCats.map(([category, count]) => {
+                        {sortedShipCats.slice(0, 8).map(([category, count]) => {
                           const isOverlap = overlapping.has(category)
                           return (
                             <li key={category} className="flex items-center gap-2">
@@ -263,6 +264,11 @@ export default async function ShipDetailPage({
                             </li>
                           )
                         })}
+                        {sortedShipCats.length > 8 && (
+                          <li className="text-xs text-text-muted pl-3 pt-0.5">
+                            {t('analysis.moreCategories', { count: sortedShipCats.length - 8 })}
+                          </li>
+                        )}
                       </ol>
                     )}
                   </Card>
