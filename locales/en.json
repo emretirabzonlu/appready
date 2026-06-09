@@ -71,6 +71,7 @@
 
   "dashboard.totalShips": "Total Vessels",
   "dashboard.detained12m": "Detentions (12 Mo)",
+  "dashboard.totalDetentions": "Total Detentions",
   "dashboard.lastInspection": "Last Inspection",
   "dashboard.recentShips": "Recent Vessels",
   "dashboard.recentShips.desc": "Latest vessels in your fleet",
@@ -112,5 +113,32 @@
   "fleet.col.inspections": "Inspections",
   "fleet.col.detentions": "Detentions",
   "fleet.col.lastInspection": "Last Inspection",
-  "fleet.empty": "Fleet is empty — add a vessel by IMO number."
+  "fleet.empty": "Fleet is empty — add a vessel by IMO number.",
+
+  "section.redflags.title": "Chronic Deficiencies",
+  "section.redflags.desc": "Deficiencies recurring across two or more separate inspections",
+  "redflag.occurrences": "in {count} separate inspections",
+  "redflag.none": "No chronic recurring deficiencies found",
+
+  "section.certificates.title": "Certificates",
+  "section.certificates.desc": "Active certificate status and validity dates",
+  "cert.expired": "Expired",
+  "cert.expiring": "Expiring Soon",
+  "cert.valid": "Valid",
+  "cert.interim": "Interim",
+  "cert.empty": "No certificate records found.",
+  "cert.col.name": "Certificate",
+  "cert.col.issuer": "Issuer",
+  "cert.col.expiry": "Expiry Date",
+  "cert.col.status": "Status",
+
+  "section.checklist.title": "Pre-Arrival Checklist",
+  "section.checklist.desc": "Prioritised checks based on arrival port, vessel history, and active campaigns",
+  "checklist.priority.high": "High",
+  "checklist.priority.medium": "Medium",
+  "checklist.priority.regional": "Regional",
+
+  "cic.banner": "Active Concentrated Inspection Campaign: {topic}",
+
+  "note.fewInspections": "This vessel is new or lightly inspected — analysis is based on regional and ship-type profiles and certificate status, not historical deficiencies."
 }

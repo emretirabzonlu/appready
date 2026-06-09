@@ -98,6 +98,15 @@ export async function getDetentionCount12M(): Promise<number> {
   return error ? 0 : (count ?? 0)
 }
 
+export async function getTotalDetentionCount(): Promise<number> {
+  const { count, error } = await supabase
+    .from('psc_inspections')
+    .select('*', { count: 'exact', head: true })
+    .eq('detention', true)
+
+  return error ? 0 : (count ?? 0)
+}
+
 export async function getLastInspectionDate(): Promise<string | null> {
   const { data, error } = await supabase
     .from('psc_inspections')

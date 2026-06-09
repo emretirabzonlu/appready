@@ -2,13 +2,14 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Search } from 'lucide-react'
-import { t } from '@/lib/i18n'
+import { useT } from '@/app/_components/LocaleProvider'
 import { cn } from '@/lib/utils'
 
 type Props = { className?: string }
 
 export function ShipSearchForm({ className }: Props) {
   const router = useRouter()
+  const t = useT()
   const [imo, setImo] = useState('')
 
   function handleSubmit(e: React.FormEvent) {
@@ -31,7 +32,7 @@ export function ShipSearchForm({ className }: Props) {
       </div>
       <button
         type="submit"
-        className="rounded bg-navy-900 px-4 py-2 text-sm font-medium text-white hover:bg-navy-700 transition-colors"
+        className="cursor-pointer rounded bg-navy-900 px-4 py-2 text-sm font-medium text-white hover:bg-navy-700 transition-colors"
       >
         {t('ship.fetch')}
       </button>

@@ -1,11 +1,15 @@
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, AlertTriangle, Square, Info } from 'lucide-react'
 import { PortSelect } from '../_components/PortSelect'
 import { FadeUp } from '@/app/_components/ui/motion'
 import { getShipByImo, getInspectionsByShip, getDeficiencies } from '@/lib/ships'
 import type { Inspection, Deficiency } from '@/lib/ships'
 import { getPorts } from '@/lib/ports'
 import { getBaselines, getBaselinesFallback } from '@/lib/baselines'
+import { getCertificates } from '@/lib/certificates'
+import type { CertWithStatus } from '@/lib/certificates'
+import { getActiveCampaign } from '@/lib/cic'
+import type { CicCampaign } from '@/lib/cic'
 import { ShipHero } from '@/app/_components/ui/ShipHero'
 import { MetricCard } from '@/app/_components/ui/MetricCard'
 import { SectionHeader } from '@/app/_components/ui/SectionHeader'
@@ -13,9 +17,49 @@ import { Card } from '@/app/_components/ui/Card'
 import { RiskBadge } from '@/app/_components/ui/RiskBadge'
 import type { RiskLevel } from '@/app/_components/ui/RiskBadge'
 import { cn } from '@/lib/utils'
-import { t } from '@/lib/i18n'
+import { getT } from '@/lib/locale'
+import { TermChip } from '@/app/_components/ui/TermChip'
 
 type InspectionRow = { inspection: Inspection; deficiencies: Deficiency[] }
+
+type RedFlag = {
+  displayText: string
+  occurrences: number
+  dates: string[]
+}
+
+type ChecklistItem = {
+  label: string
+  priority: 'high' | 'medium' | 'regional'
+  tag: 'cic' | 'overlap' | 'baseline' | 'ship'
+}
+
+function computeRedFlags(rows: InspectionRow[]): RedFlag[] {
+  const map = new Map<string, { displayText: string; inspIds: Set<string>; dates: Set<string> }>()
+
+  for (const { inspection, deficiencies } of rows) {
+    for (const d of deficiencies) {
+      const raw = d.deficiency_text?.trim() ?? d.category ?? null
+      if (!raw) continue
+      const key = raw.toLowerCase()
+      if (!map.has(key)) {
+        map.set(key, { displayText: raw, inspIds: new Set(), dates: new Set() })
+      }
+      const entry = map.get(key)!
+      entry.inspIds.add(inspection.id)
+      entry.dates.add(inspection.report_date)
+    }
+  }
+
+  return [...map.entries()]
+    .filter(([, v]) => v.inspIds.size >= 2)
+    .map(([, v]) => ({
+      displayText: v.displayText,
+      occurrences: v.inspIds.size,
+      dates: [...v.dates].sort().reverse(),
+    }))
+    .sort((a, b) => b.occurrences - a.occurrences)
+}
 
 export default async function ShipDetailPage({
   params,
@@ -24,13 +68,11 @@ export default async function ShipDetailPage({
   params: Promise<{ imo: string }>
   searchParams: Promise<{ port?: string }>
 }) {
+  const { t } = await getT()
   const { imo } = await params
   const { port } = await searchParams
 
-  const [ship, ports] = await Promise.all([
-    getShipByImo(imo),
-    getPorts(),
-  ])
+  const [ship, ports] = await Promise.all([getShipByImo(imo), getPorts()])
 
   if (!ship) {
     return (
@@ -42,20 +84,23 @@ export default async function ShipDetailPage({
           <ChevronLeft size={15} />
           {t('ship.backToList')}
         </Link>
-        <p className="text-sm text-danger-text">
-          {t('ship.notFound', { imo })}
-        </p>
+        <p className="text-sm text-danger-text">{t('ship.notFound', { imo })}</p>
       </div>
     )
   }
 
   const inspections = await getInspectionsByShip(ship.id)
-  const rows: InspectionRow[] = await Promise.all(
-    inspections.map(async (inspection) => ({
-      inspection,
-      deficiencies: await getDeficiencies(inspection.id),
-    })),
-  )
+  const [rowsRaw, certificates, activeCampaign] = await Promise.all([
+    Promise.all(
+      inspections.map(async (inspection) => ({
+        inspection,
+        deficiencies: await getDeficiencies(inspection.id),
+      })),
+    ),
+    getCertificates(ship.id),
+    getActiveCampaign(),
+  ])
+  const rows: InspectionRow[] = rowsRaw
 
   const selectedPort = port ? ports.find((p) => p.id === port) ?? null : null
   const mouRegionId = selectedPort?.mou_region_id ?? null
@@ -81,6 +126,37 @@ export default async function ShipDetailPage({
   const baselineCatSet = new Set(baselines.map((b) => b.category))
   const overlapping = new Set([...baselineCatSet].filter((c) => catCounts.has(c)))
 
+  // Red flags: deficiencies recurring across 2+ inspections
+  const redFlags = computeRedFlags(rows)
+
+  // Checklist items (only relevant when port is selected)
+  const checklistItems: ChecklistItem[] = []
+  if (mouRegionId) {
+    if (activeCampaign) {
+      checklistItems.push({ label: activeCampaign.topic, priority: 'high', tag: 'cic' })
+    }
+    // HIGH: in both baseline AND ship history
+    for (const cat of overlapping) {
+      checklistItems.push({ label: cat, priority: 'high', tag: 'overlap' })
+    }
+    // MEDIUM: in ship history only (not in baseline)
+    for (const [cat] of sortedShipCats
+      .filter(([c]) => !baselineCatSet.has(c))
+      .slice(0, 3)) {
+      if (!checklistItems.some((i) => i.label === cat)) {
+        checklistItems.push({ label: cat, priority: 'medium', tag: 'ship' })
+      }
+    }
+    // REGIONAL: in baseline only (ship has no history — regional focus, check anyway)
+    for (const b of baselines.filter((b) => !overlapping.has(b.category))) {
+      checklistItems.push({ label: b.category, priority: 'regional', tag: 'baseline' })
+    }
+  }
+  const priorityOrder: Record<ChecklistItem['priority'], number> = { high: 0, medium: 1, regional: 2 }
+  const sortedChecklistItems = [...checklistItems].sort(
+    (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority],
+  )
+
   // Metrics
   const inspectionCount = rows.length
   const detentionCount = rows.filter((r) => r.inspection.detention).length
@@ -100,6 +176,14 @@ export default async function ShipDetailPage({
 
   const detentionVariant = detentionCount > 0 ? 'danger' : 'success'
   const detentionDaysVariant = longestDetentionDays !== null ? 'warning' : 'navy'
+
+  // Dynamic step numbering
+  let _step = 0
+  const analysisStep = mouRegionId ? ++_step : null
+  const redFlagStep = redFlags.length > 0 ? ++_step : null
+  const certStep = certificates.length > 0 ? ++_step : null
+  const checklistStep = mouRegionId && sortedChecklistItems.length > 0 ? ++_step : null
+  const inspStep = ++_step
 
   return (
     <div className="px-6 py-8 max-w-5xl mx-auto">
@@ -121,6 +205,24 @@ export default async function ShipDetailPage({
           riskLabel={riskLabel}
           selectedRegionName={selectedMouName ?? undefined}
         />
+
+        {/* Low-inspection note */}
+        {inspectionCount < 3 && (
+          <div className="flex items-start gap-2.5 rounded-lg bg-accent/8 border border-accent/20 px-4 py-3">
+            <Info size={15} className="text-accent shrink-0 mt-0.5" />
+            <p className="text-sm text-accent/80">{t('note.fewInspections')}</p>
+          </div>
+        )}
+
+        {/* CIC Banner */}
+        {activeCampaign && (
+          <div className="flex items-start gap-3 rounded-lg bg-danger-bg border border-danger-text/20 px-4 py-3">
+            <AlertTriangle size={15} className="text-danger-text shrink-0 mt-0.5" />
+            <p className="text-sm text-danger-text font-medium">
+              {t('cic.banner', { topic: activeCampaign.topic })}
+            </p>
+          </div>
+        )}
 
         {/* Metrics */}
         <div className="grid grid-cols-4 gap-3">
@@ -164,10 +266,10 @@ export default async function ShipDetailPage({
         </div>
 
         {/* Gap analysis */}
-        {mouRegionId && (
+        {analysisStep && (
           <div>
             <SectionHeader
-              step={1}
+              step={analysisStep}
               title={t('section.analysis.title')}
               description={t('section.analysis.desc')}
             />
@@ -278,10 +380,186 @@ export default async function ShipDetailPage({
           </div>
         )}
 
+        {/* Red Flags */}
+        {redFlagStep && (
+          <div>
+            <SectionHeader
+              step={redFlagStep}
+              title={t('section.redflags.title')}
+              description={t('section.redflags.desc')}
+            />
+            <div className="space-y-2">
+              {redFlags.map((flag, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 rounded-md bg-danger-bg/40 border-l-2 border-danger-text/60 px-4 py-3"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text">
+                      <TermChip>{flag.displayText}</TermChip>
+                    </p>
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      <span className="text-xs text-danger-text font-medium">
+                        {t('redflag.occurrences', { count: flag.occurrences })}
+                      </span>
+                      {flag.dates.slice(0, 4).map((d) => (
+                        <span
+                          key={d}
+                          className="text-[11px] text-text-muted bg-border/80 rounded px-1.5 py-0.5 tabular-nums"
+                        >
+                          {d}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Certificates */}
+        {certStep && (
+          <div>
+            <SectionHeader
+              step={certStep}
+              title={t('section.certificates.title')}
+              description={t('section.certificates.desc')}
+            />
+            <Card className="overflow-hidden p-0">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-page-bg border-b border-border">
+                    <th className="text-left text-xs text-text-muted font-medium px-4 py-2.5">
+                      {t('cert.col.name')}
+                    </th>
+                    <th className="text-left text-xs text-text-muted font-medium px-4 py-2.5">
+                      {t('cert.col.issuer')}
+                    </th>
+                    <th className="text-left text-xs text-text-muted font-medium px-4 py-2.5">
+                      {t('cert.col.expiry')}
+                    </th>
+                    <th className="text-left text-xs text-text-muted font-medium px-4 py-2.5">
+                      {t('cert.col.status')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {certificates.map((cert: CertWithStatus) => (
+                    <tr key={cert.id} className="hover:bg-page-bg/50 transition-colors">
+                      <td className="px-4 py-2.5">
+                        <span className="font-medium text-text">
+                          <TermChip>{cert.cert_type}</TermChip>
+                        </span>
+                        {cert.is_interim && (
+                          <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-warning-bg text-warning-text font-semibold">
+                            {t('cert.interim')}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2.5 text-text-muted">{cert.issuer ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-text-muted tabular-nums">
+                        {cert.expiry_date ?? '—'}
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <RiskBadge
+                          level={
+                            cert.status === 'expired' ? 'danger' :
+                            cert.status === 'expiring' ? 'warning' : 'success'
+                          }
+                        >
+                          {cert.status === 'expired'
+                            ? t('cert.expired')
+                            : cert.status === 'expiring'
+                            ? t('cert.expiring')
+                            : t('cert.valid')}
+                        </RiskBadge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Card>
+          </div>
+        )}
+
+        {/* Pre-arrival Checklist */}
+        {checklistStep && (
+          <div>
+            <SectionHeader
+              step={checklistStep}
+              title={t('section.checklist.title')}
+              description={t('section.checklist.desc')}
+            />
+            <div className="space-y-1.5">
+              {sortedChecklistItems.map((item, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    'flex items-center gap-3 rounded-md px-4 py-2.5',
+                    item.priority === 'high'
+                      ? 'bg-danger-bg/40'
+                      : item.priority === 'medium'
+                      ? 'bg-warning-bg/30'
+                      : 'bg-page-bg',
+                  )}
+                >
+                  <Square
+                    size={14}
+                    className={cn(
+                      'shrink-0',
+                      item.priority === 'high'
+                        ? 'text-danger-text'
+                        : item.priority === 'medium'
+                        ? 'text-warning-text'
+                        : 'text-accent/40',
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      'flex-1 text-sm',
+                      item.priority === 'high'
+                        ? 'text-danger-text font-medium'
+                        : item.priority === 'medium'
+                        ? 'text-warning-text'
+                        : 'text-text-muted',
+                    )}
+                  >
+                    <TermChip>{item.label}</TermChip>
+                  </span>
+                  {item.tag === 'cic' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-warning-bg text-warning-text font-semibold">
+                      CIC
+                    </span>
+                  )}
+                  <span
+                    className={cn(
+                      'text-[10px] px-2 py-0.5 rounded font-semibold leading-none',
+                      item.priority === 'high'
+                        ? 'bg-danger-text/15 text-danger-text'
+                        : item.priority === 'medium'
+                        ? 'bg-warning-text/15 text-warning-text'
+                        : 'bg-accent/10 text-accent',
+                    )}
+                  >
+                    {t(
+                      item.priority === 'high'
+                        ? 'checklist.priority.high'
+                        : item.priority === 'medium'
+                        ? 'checklist.priority.medium'
+                        : 'checklist.priority.regional',
+                    )}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Inspections */}
         <div>
           <SectionHeader
-            step={mouRegionId ? 2 : 1}
+            step={inspStep}
             title={t('section.inspections.title')}
             description={t('section.inspections.desc')}
           />

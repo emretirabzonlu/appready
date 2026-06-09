@@ -71,6 +71,7 @@
 
   "dashboard.totalShips": "Toplam Gemi",
   "dashboard.detained12m": "Tutulma (12 Ay)",
+  "dashboard.totalDetentions": "Toplam Tutulma",
   "dashboard.lastInspection": "Son Denetim",
   "dashboard.recentShips": "Son Gemiler",
   "dashboard.recentShips.desc": "Filo listenizdeki son gemiler",
@@ -112,5 +113,32 @@
   "fleet.col.inspections": "Denetim",
   "fleet.col.detentions": "Tutulma",
   "fleet.col.lastInspection": "Son Denetim",
-  "fleet.empty": "Filo listesi boş — IMO numarasıyla gemi ekleyin."
+  "fleet.empty": "Filo listesi boş — IMO numarasıyla gemi ekleyin.",
+
+  "section.redflags.title": "Kronik Eksiklikler",
+  "section.redflags.desc": "Birden fazla denetimde tekrar eden eksiklikler",
+  "redflag.occurrences": "{count} ayrı denetimde",
+  "redflag.none": "Kronik tekrar eden eksiklik bulunamadı",
+
+  "section.certificates.title": "Sertifikalar",
+  "section.certificates.desc": "Aktif sertifika durumu ve geçerlilik tarihleri",
+  "cert.expired": "Süresi Geçmiş",
+  "cert.expiring": "Yaklaşıyor",
+  "cert.valid": "Geçerli",
+  "cert.interim": "Geçici",
+  "cert.empty": "Sertifika kaydı bulunamadı.",
+  "cert.col.name": "Sertifika",
+  "cert.col.issuer": "Veren",
+  "cert.col.expiry": "Bitiş Tarihi",
+  "cert.col.status": "Durum",
+
+  "section.checklist.title": "Varış Öncesi Kontrol Listesi",
+  "section.checklist.desc": "Seçili liman bölgesi, gemi geçmişi ve aktif kampanyaya göre önceliklendirilmiş kontroller",
+  "checklist.priority.high": "Yüksek",
+  "checklist.priority.medium": "Orta",
+  "checklist.priority.regional": "Bölgesel",
+
+  "cic.banner": "Aktif Yoğunlaştırılmış Denetim Kampanyası: {topic}",
+
+  "note.fewInspections": "Bu gemi yeni veya az denetimli — analiz, geçmiş eksikliklere değil bölge + gemi tipi profiline ve sertifika durumuna dayanıyor."
 }

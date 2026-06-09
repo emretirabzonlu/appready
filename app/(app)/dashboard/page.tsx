@@ -2,22 +2,24 @@ import Link from 'next/link'
 import { Ship } from 'lucide-react'
 import {
   getShipCount,
-  getDetentionCount12M,
+  getTotalDetentionCount,
   getLastInspectionDate,
   getRecentShips,
 } from '@/lib/ships'
+import type { ShipSummary } from '@/lib/ships'
 import { MetricCard } from '@/app/_components/ui/MetricCard'
 import { SectionHeader } from '@/app/_components/ui/SectionHeader'
 import { RiskBadge } from '@/app/_components/ui/RiskBadge'
 import { Card } from '@/app/_components/ui/Card'
 import { FadeUp, StaggerList, StaggerItem } from '@/app/_components/ui/motion'
 import { ShipSearchForm } from '@/app/(app)/ship/_components/ShipSearchForm'
-import { t } from '@/lib/i18n'
+import { getT } from '@/lib/locale'
 
 export default async function DashboardPage() {
-  const [shipCount, detained12m, lastDate, recentShips] = await Promise.all([
+  const { t } = await getT()
+  const [shipCount, totalDetentions, lastDate, recentShips] = await Promise.all([
     getShipCount(),
-    getDetentionCount12M(),
+    getTotalDetentionCount(),
     getLastInspectionDate(),
     getRecentShips(5),
   ])
@@ -31,9 +33,9 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-3 gap-3 mb-8">
           <MetricCard label={t('dashboard.totalShips')} value={shipCount} variant="navy" />
           <MetricCard
-            label={t('dashboard.detained12m')}
-            value={detained12m}
-            variant={detained12m > 0 ? 'danger' : 'success'}
+            label={t('dashboard.totalDetentions')}
+            value={totalDetentions}
+            variant={totalDetentions > 0 ? 'danger' : 'success'}
           />
           <MetricCard label={t('dashboard.lastInspection')} value={lastDate ?? '—'} variant="navy" />
         </div>
@@ -57,7 +59,7 @@ export default async function DashboardPage() {
         </FadeUp>
       ) : (
         <StaggerList className="space-y-2 mb-8">
-          {recentShips.map((ship) => (
+          {recentShips.map((ship: ShipSummary) => (
             <StaggerItem key={ship.id}>
               <Link
                 href={`/ship/${encodeURIComponent(ship.imo)}`}

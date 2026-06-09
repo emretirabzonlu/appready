@@ -1,6 +1,6 @@
 'use client'
 import { useRouter } from 'next/navigation'
-import { t } from '@/lib/i18n'
+import { useT } from '@/app/_components/LocaleProvider'
 import type { Port } from '@/lib/ports'
 
 type Props = {
@@ -11,6 +11,7 @@ type Props = {
 
 export function PortSelect({ ports, imo, currentPort }: Props) {
   const router = useRouter()
+  const t = useT()
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const port = e.target.value
@@ -22,7 +23,7 @@ export function PortSelect({ ports, imo, currentPort }: Props) {
     <select
       value={currentPort}
       onChange={handleChange}
-      className="rounded border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:ring-1 focus:ring-accent"
+      className="cursor-pointer rounded border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:ring-1 focus:ring-accent"
     >
       <option value="">{t('port.select')}</option>
       {ports.map((p) => (

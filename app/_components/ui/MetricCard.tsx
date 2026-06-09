@@ -29,7 +29,7 @@ export function MetricCard({ label, value, sub, variant = 'navy', className }: P
     <div className={cn('relative bg-surface border border-border rounded-card overflow-hidden', className)}>
       <div className={cn('absolute inset-y-0 left-0 w-[3px]', barColor[variant])} />
       <div className="pl-5 pr-4 py-4">
-        <p className={cn('text-[22px] font-medium leading-none tabular-nums truncate', valueColor[variant])}>
+        <p className={cn('text-[22px] font-medium leading-snug tabular-nums break-words', valueColor[variant])}>
           {value}
         </p>
         <p className="text-[10px] font-medium uppercase tracking-wide text-text-muted mt-2">

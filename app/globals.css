@@ -53,6 +53,31 @@
   color-scheme: only light;
 }
 
+/* ── Radix dropdown / tooltip animations ──────────────────── */
+@keyframes dropdown-open {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+@keyframes dropdown-close {
+  from { opacity: 1; transform: translateY(0)    scale(1);    }
+  to   { opacity: 0; transform: translateY(-4px) scale(0.97); }
+}
+@keyframes tooltip-open {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+[data-radix-dropdown]:where([data-state=open])  { animation: dropdown-open  0.14s ease-out forwards; }
+[data-radix-dropdown]:where([data-state=closed]) { animation: dropdown-close 0.1s  ease-in  forwards; }
+[data-radix-tooltip]:where([data-state=delayed-open]) { animation: tooltip-open 0.12s ease-out forwards; }
+
+/* ── Interactive cursor ────────────────────────────────────── */
+button,
+[role="button"],
+a,
+select {
+  cursor: pointer;
+}
+
 /* ── Base styles ───────────────────────────────────────────── */
 html,
 body {

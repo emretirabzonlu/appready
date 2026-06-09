@@ -3,9 +3,10 @@ import { MetricCard } from '@/app/_components/ui/MetricCard'
 import { SectionHeader } from '@/app/_components/ui/SectionHeader'
 import { FadeUp } from '@/app/_components/ui/motion'
 import { FleetTable } from './_components/FleetTable'
-import { t } from '@/lib/i18n'
+import { getT } from '@/lib/locale'
 
 export default async function FleetPage() {
+  const { t } = await getT()
   const ships = await getFleetOverview()
 
   const since12m = new Date()
