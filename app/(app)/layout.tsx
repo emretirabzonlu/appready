@@ -7,7 +7,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <TopNav />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto bg-page-bg">
+        <main className="flex-1 overflow-y-auto bg-page-bg bg-page-gradient">
           {children}
         </main>
       </div>

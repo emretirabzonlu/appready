@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { RegionSelect } from '../_components/RegionSelect'
+import { FadeUp } from '@/app/_components/ui/motion'
 import { getShipByImo, getInspectionsByShip, getDeficiencies } from '@/lib/ships'
 import type { Inspection, Deficiency } from '@/lib/ships'
 import { getMouRegions } from '@/lib/mou'
@@ -110,6 +111,7 @@ export default async function ShipDetailPage({
         {t('ship.backToList')}
       </Link>
 
+      <FadeUp>
       <div className="space-y-6">
         {/* Hero */}
         <ShipHero
@@ -329,6 +331,7 @@ export default async function ShipDetailPage({
           )}
         </div>
       </div>
+      </FadeUp>
     </div>
   )
 }

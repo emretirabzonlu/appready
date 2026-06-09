@@ -33,6 +33,21 @@
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
+/* ── Anchor swing loader animation ────────────────────────── */
+@keyframes anchor-swing {
+  0%, 100% { transform: rotate(-8deg); }
+  50%       { transform: rotate(8deg); }
+}
+.animate-anchor-swing {
+  animation: anchor-swing 1.5s ease-in-out infinite;
+  transform-origin: 50% 0%;
+}
+
+/* ── Subtle radial highlight on page background ────────────── */
+.bg-page-gradient {
+  background-image: radial-gradient(ellipse at 100% 0%, rgba(77, 163, 255, 0.04) 0%, transparent 60%);
+}
+
 /* ── Always light — no auto dark mode ──────────────────────── */
 :root {
   color-scheme: only light;
