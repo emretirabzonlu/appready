@@ -1,0 +1,68 @@
+{
+  "app.name": "PortReady",
+  "app.tagline": "Port state control readiness tool",
+  "app.valueProp1": "Region-based inspection risk analysis",
+  "app.valueProp2": "Gap detection and readiness score",
+  "app.valueProp3": "Fleet-wide PSC performance tracking",
+
+  "nav.dashboard": "Dashboard",
+  "nav.ships": "Vessels",
+  "nav.reports": "Reports",
+  "nav.fleet": "Fleet",
+  "nav.settings": "Settings",
+
+  "search.placeholder": "Search vessel by IMO",
+
+  "ship.title": "Vessel Inspection Record",
+  "ship.fetch": "Fetch",
+  "ship.imoPlaceholder": "IMO number (e.g. 9123456)",
+  "ship.notFound": "No vessel found for IMO \"{imo}\".",
+  "ship.imo": "IMO",
+  "ship.callSign": "Call Sign",
+  "ship.type": "Type",
+  "ship.flag": "Flag",
+  "ship.yearBuilt": "Year Built",
+  "ship.gt": "GT",
+  "ship.dwt": "DWT",
+  "ship.class": "Class",
+  "ship.ismManager": "ISM Manager",
+
+  "metric.inspections": "Inspections",
+  "metric.detentions": "Detentions",
+  "metric.longestGap": "Longest gap",
+  "metric.longestGapUnit": "days",
+  "metric.targetRegion": "Target region",
+
+  "inspection.title": "Inspections",
+  "inspection.authority": "Authority",
+  "inspection.region": "Region",
+  "inspection.deficiencies": "Deficiencies",
+  "inspection.detention": "Detention",
+  "inspection.noRecord": "No inspection records found for this vessel.",
+
+  "analysis.selectRegion": "— Select region —",
+  "analysis.targetRegion": "Target Region",
+  "analysis.title": "Gap Analysis",
+  "analysis.noShipType": "Cannot compare regions without a known ship type.",
+  "analysis.riskAlert": "{count} high-risk categories detected — highlighted where both region focus and vessel weakness overlap.",
+  "analysis.regionProfile": "Region Risk Profile",
+  "analysis.shipWeaknesses": "Vessel Weaknesses",
+  "analysis.allInspections": "all inspections",
+  "analysis.noBaseline": "No baseline data for this region + ship type.",
+  "analysis.noDeficiencies": "No deficiency records found.",
+
+  "risk.low": "Low Risk",
+  "risk.medium": "Medium Risk",
+  "risk.high": "High Risk",
+
+  "section.analysis.title": "Gap Analysis",
+  "section.analysis.desc": "Comparison of region focus areas with vessel inspection history",
+  "section.inspections.title": "Inspection History",
+  "section.inspections.desc": "PSC inspection records sorted by date",
+
+  "login.title": "Sign In",
+  "login.email": "Email",
+  "login.emailPlaceholder": "name@company.com",
+  "login.password": "Password",
+  "login.submit": "Sign in"
+}

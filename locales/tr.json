@@ -1,0 +1,68 @@
+{
+  "app.name": "PortReady",
+  "app.tagline": "Liman devleti kontrolü hazırlık aracı",
+  "app.valueProp1": "Bölge bazlı denetim riski analizi",
+  "app.valueProp2": "Çakışma tespiti ve hazırlık skoru",
+  "app.valueProp3": "Filo genelinde PSC performans takibi",
+
+  "nav.dashboard": "Panel",
+  "nav.ships": "Gemiler",
+  "nav.reports": "Raporlar",
+  "nav.fleet": "Filo",
+  "nav.settings": "Ayarlar",
+
+  "search.placeholder": "IMO ile gemi ara",
+
+  "ship.title": "Gemi Denetim Kaydı",
+  "ship.fetch": "Getir",
+  "ship.imoPlaceholder": "IMO numarası (örn. 9123456)",
+  "ship.notFound": "\"{imo}\" IMO numarasıyla gemi bulunamadı.",
+  "ship.imo": "IMO",
+  "ship.callSign": "Çağrı İşareti",
+  "ship.type": "Tip",
+  "ship.flag": "Bayrak",
+  "ship.yearBuilt": "İnşa Yılı",
+  "ship.gt": "GT",
+  "ship.dwt": "DWT",
+  "ship.class": "Klas",
+  "ship.ismManager": "ISM Yöneticisi",
+
+  "metric.inspections": "Denetim",
+  "metric.detentions": "Tutulma",
+  "metric.longestGap": "En uzun aralık",
+  "metric.longestGapUnit": "gün",
+  "metric.targetRegion": "Hedef bölge",
+
+  "inspection.title": "Denetimler",
+  "inspection.authority": "Otorite",
+  "inspection.region": "Bölge",
+  "inspection.deficiencies": "Eksiklik",
+  "inspection.detention": "Tutulma",
+  "inspection.noRecord": "Bu gemiye ait denetim kaydı bulunamadı.",
+
+  "analysis.selectRegion": "— Bölge seçin —",
+  "analysis.targetRegion": "Hedef Bölge",
+  "analysis.title": "Çakışma Analizi",
+  "analysis.noShipType": "Gemi tipi bilinmediğinden bölge karşılaştırması yapılamıyor.",
+  "analysis.riskAlert": "{count} yüksek riskli kategori tespit edildi — hem bölgenin denetlediği hem bu geminin zayıf olduğu alanlar işaretlendi.",
+  "analysis.regionProfile": "Bölge Risk Profili",
+  "analysis.shipWeaknesses": "Gemi Zayıf Noktaları",
+  "analysis.allInspections": "tüm denetimler",
+  "analysis.noBaseline": "Bu bölge + gemi tipi için baseline verisi bulunamadı.",
+  "analysis.noDeficiencies": "Eksiklik kaydı bulunamadı.",
+
+  "risk.low": "Düşük Risk",
+  "risk.medium": "Orta Risk",
+  "risk.high": "Yüksek Risk",
+
+  "section.analysis.title": "Çakışma Analizi",
+  "section.analysis.desc": "Bölge odak alanları ile gemi denetim geçmişinin karşılaştırması",
+  "section.inspections.title": "Denetim Geçmişi",
+  "section.inspections.desc": "Tarihe göre sıralı PSC denetim kayıtları",
+
+  "login.title": "Giriş",
+  "login.email": "E-posta",
+  "login.emailPlaceholder": "ornek@firma.com",
+  "login.password": "Şifre",
+  "login.submit": "Giriş yap"
+}
