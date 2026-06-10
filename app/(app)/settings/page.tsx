@@ -5,10 +5,17 @@ import { Card } from '@/app/_components/ui/Card'
 import { cn } from '@/lib/utils'
 import { useT, useLocale } from '@/app/_components/LocaleProvider'
 import type { Locale } from '@/lib/i18n'
+import { createClient } from '@/lib/supabase/browser'
 
 export default function SettingsPage() {
   const t = useT()
   const { locale, setLocale } = useLocale()
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    window.location.href = '/login'
+  }
 
   return (
     <div className="px-6 py-8 max-w-2xl mx-auto">
@@ -54,7 +61,7 @@ export default function SettingsPage() {
       <button
         type="button"
         className="cursor-pointer inline-flex items-center gap-2 text-sm text-danger-text hover:text-white hover:bg-danger-text px-4 py-2 rounded-sm border border-danger-text/30 transition-colors"
-        onClick={() => {}}
+        onClick={handleSignOut}
       >
         <LogOut size={15} />
         {t('settings.logout')}

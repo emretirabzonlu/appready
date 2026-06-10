@@ -78,6 +78,15 @@
   "dashboard.addShip": "Add Vessel",
   "dashboard.addShip.desc": "Search or add a vessel by IMO number",
 
+  "dashboard.attention": "Needs Attention",
+  "dashboard.attention.desc": "Items in your fleet that require priority action",
+  "dashboard.attention.certs": "Expired / Expiring Certificates",
+  "dashboard.attention.highRisk": "High-Risk Vessels",
+  "dashboard.attention.chronic": "Chronic Issues",
+  "dashboard.attention.clean": "All clear — no alerts in this category",
+  "dashboard.attention.detentions": "{count} detention(s)",
+  "dashboard.attention.chronicCount": "{count} chronic item(s)",
+
   "settings.title": "Settings",
   "settings.language": "Interface Language",
   "settings.language.desc": "Select the application language",
@@ -96,6 +105,7 @@
   "login.noAccount": "Don't have an account?",
   "login.requestAccess": "Request access",
   "login.copyright": "© 2026 PortReady",
+  "login.error": "Invalid email or password. Please try again.",
 
   "fleet.title": "Fleet",
   "fleet.subtitle": "Fleet-wide PSC performance summary",

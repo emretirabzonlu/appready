@@ -78,6 +78,15 @@
   "dashboard.addShip": "Gemi Ekle",
   "dashboard.addShip.desc": "IMO numarasıyla gemi arayın veya ekleyin",
 
+  "dashboard.attention": "Dikkat Gerektirenler",
+  "dashboard.attention.desc": "Filonuzda öncelik gerektiren durumlar",
+  "dashboard.attention.certs": "Süresi Geçmiş / Yaklaşan Sertifikalar",
+  "dashboard.attention.highRisk": "Yüksek Riskli Gemiler",
+  "dashboard.attention.chronic": "Kronik Sorunu Olanlar",
+  "dashboard.attention.clean": "Temiz — bu kategoride uyarı yok",
+  "dashboard.attention.detentions": "{count} tutulma",
+  "dashboard.attention.chronicCount": "{count} kronik kalem",
+
   "settings.title": "Ayarlar",
   "settings.language": "Arayüz Dili",
   "settings.language.desc": "Uygulama dilini seçin",
@@ -96,6 +105,7 @@
   "login.noAccount": "Hesabın yok mu?",
   "login.requestAccess": "Erişim talep et",
   "login.copyright": "© 2026 PortReady",
+  "login.error": "E-posta veya şifre hatalı. Lütfen tekrar deneyin.",
 
   "fleet.title": "Filo",
   "fleet.subtitle": "Filo genelinde PSC performans özeti",

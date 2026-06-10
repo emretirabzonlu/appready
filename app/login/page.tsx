@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
-import { CheckCircle2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { CheckCircle2, AlertCircle } from 'lucide-react'
 import { t } from '@/lib/i18n'
+import { createClient } from '@/lib/supabase/browser'
 
 const valueProps = [
   t('app.valueProp1'),
@@ -10,12 +12,30 @@ const valueProps = [
 ] as const
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    // TODO: Supabase auth
+    setError(null)
+    setLoading(true)
+
+    const supabase = createClient()
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (authError) {
+      console.error('[PortReady] signInWithPassword hatası:', authError.message, authError)
+      setError(t('login.error'))
+      setLoading(false)
+      return
+    }
+
+    // Refresh server component cache so layout/middleware see the new session
+    router.refresh()
+    router.push('/dashboard')
   }
 
   return (
@@ -73,7 +93,9 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t('login.emailPlaceholder')}
-                  className="w-full rounded-sm border border-border bg-page-bg px-3 py-2.5 text-sm text-text placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-colors"
+                  required
+                  disabled={loading}
+                  className="w-full rounded-sm border border-border bg-page-bg px-3 py-2.5 text-sm text-text placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-colors disabled:opacity-50"
                 />
               </div>
 
@@ -85,15 +107,25 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-sm border border-border bg-page-bg px-3 py-2.5 text-sm text-text outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-colors"
+                  required
+                  disabled={loading}
+                  className="w-full rounded-sm border border-border bg-page-bg px-3 py-2.5 text-sm text-text outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-colors disabled:opacity-50"
                 />
               </div>
 
+              {error && (
+                <div className="flex items-center gap-2 rounded-sm border border-danger-text/30 bg-danger-bg px-3 py-2.5 text-sm text-danger-text">
+                  <AlertCircle size={14} className="shrink-0" />
+                  {error}
+                </div>
+              )}
+
               <button
                 type="submit"
-                className="w-full rounded-card bg-navy-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-navy-700 transition-colors mt-1"
+                disabled={loading}
+                className="w-full rounded-card bg-navy-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-navy-700 transition-colors mt-1 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {t('login.submit')}
+                {loading ? '…' : t('login.submit')}
               </button>
             </form>
 

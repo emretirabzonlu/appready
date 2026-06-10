@@ -18,18 +18,27 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/app/_components/ui/Tooltip'
+import { createClient } from '@/lib/supabase/browser'
 
-const MOCK_USER = { name: 'Demo Kaptan', role: 'Port Manager', initials: 'DK' }
+type Props = { userEmail: string | null }
 
-export function TopNav() {
+export function TopNav({ userEmail }: Props) {
   const router = useRouter()
   const t = useT()
   const [query, setQuery] = useState('')
+
+  const initials = userEmail ? userEmail[0].toUpperCase() : '?'
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     const q = query.trim()
     if (q) router.push(`/ship/${encodeURIComponent(q)}`)
+  }
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    window.location.href = '/login'
   }
 
   return (
@@ -90,17 +99,18 @@ export function TopNav() {
               >
                 <span className="h-7 w-7 rounded-full bg-accent flex items-center justify-center
                                   text-white text-[11px] font-semibold shrink-0 select-none">
-                  {MOCK_USER.initials}
+                  {initials}
                 </span>
                 <div className="text-left hidden sm:block">
-                  <p className="text-[13px] font-medium text-white/90 leading-none">{MOCK_USER.name}</p>
-                  <p className="text-[10px] text-white/45 mt-0.5 leading-none">{MOCK_USER.role}</p>
+                  <p className="text-[13px] font-medium text-white/90 leading-none truncate max-w-32">
+                    {userEmail ?? '…'}
+                  </p>
                 </div>
               </button>
             </DropdownTrigger>
 
             <DropdownContent align="end">
-              <DropdownLabel>{MOCK_USER.name}</DropdownLabel>
+              <DropdownLabel className="truncate max-w-48">{userEmail ?? '…'}</DropdownLabel>
               <DropdownItem>
                 <User size={14} className="text-text-muted" />
                 Profil
@@ -110,7 +120,10 @@ export function TopNav() {
                 {t('nav.settings')}
               </DropdownItem>
               <DropdownSeparator />
-              <DropdownItem className="text-danger-text focus:text-danger-text focus:bg-danger-bg/50">
+              <DropdownItem
+                onSelect={handleSignOut}
+                className="text-danger-text focus:text-danger-text focus:bg-danger-bg/50"
+              >
                 <LogOut size={14} />
                 {t('settings.logout')}
               </DropdownItem>
