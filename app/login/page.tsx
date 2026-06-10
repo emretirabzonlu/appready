@@ -11,24 +11,50 @@ const valueProps = [
   t('app.valueProp3'),
 ] as const
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [emailError, setEmailError] = useState<string | null>(null)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    setLoading(true)
 
+    const trimmedEmail = email.trim()
+    const trimmedPassword = password.trim()
+
+    let valid = true
+    if (!trimmedEmail) {
+      setEmailError(t('login.error.emailRequired'))
+      valid = false
+    } else if (!EMAIL_RE.test(trimmedEmail)) {
+      setEmailError(t('login.error.emailInvalid'))
+      valid = false
+    } else {
+      setEmailError(null)
+    }
+
+    if (!trimmedPassword) {
+      setPasswordError(t('login.error.passwordRequired'))
+      valid = false
+    } else {
+      setPasswordError(null)
+    }
+
+    if (!valid) return
+
+    setLoading(true)
     const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    const { error: authError } = await supabase.auth.signInWithPassword({ email: trimmedEmail, password: trimmedPassword })
 
     if (authError) {
-      console.error('[PortReady] signInWithPassword hatası:', authError.message, authError)
-      setError(t('login.error'))
+      setError(t('login.error.credentials'))
       setLoading(false)
       return
     }
@@ -91,12 +117,12 @@ export default function LoginPage() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setEmailError(null) }}
                   placeholder={t('login.emailPlaceholder')}
-                  required
                   disabled={loading}
                   className="w-full rounded-sm border border-border bg-page-bg px-3 py-2.5 text-sm text-text placeholder:text-text-muted outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-colors disabled:opacity-50"
                 />
+                {emailError && <p className="mt-1 text-xs text-danger-text">{emailError}</p>}
               </div>
 
               <div>
@@ -106,11 +132,11 @@ export default function LoginPage() {
                 <input
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  onChange={(e) => { setPassword(e.target.value); setPasswordError(null) }}
                   disabled={loading}
                   className="w-full rounded-sm border border-border bg-page-bg px-3 py-2.5 text-sm text-text outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-colors disabled:opacity-50"
                 />
+                {passwordError && <p className="mt-1 text-xs text-danger-text">{passwordError}</p>}
               </div>
 
               {error && (
@@ -125,7 +151,7 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full rounded-card bg-navy-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-navy-700 transition-colors mt-1 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? '…' : t('login.submit')}
+                {loading ? t('login.submitting') : t('login.submit')}
               </button>
             </form>
 

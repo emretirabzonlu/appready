@@ -106,6 +106,11 @@
   "login.requestAccess": "Erişim talep et",
   "login.copyright": "© 2026 PortReady",
   "login.error": "E-posta veya şifre hatalı. Lütfen tekrar deneyin.",
+  "login.error.emailRequired": "E-posta gerekli.",
+  "login.error.passwordRequired": "Şifre gerekli.",
+  "login.error.emailInvalid": "Geçerli bir e-posta girin.",
+  "login.error.credentials": "E-posta veya şifre hatalı.",
+  "login.submitting": "Giriş yapılıyor...",
 
   "fleet.title": "Filo",
   "fleet.subtitle": "Filo genelinde PSC performans özeti",
