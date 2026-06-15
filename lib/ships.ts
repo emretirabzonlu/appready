@@ -33,6 +33,7 @@ export type Inspection = {
   num_deficiencies: number | null
   mou_region_id: string | null
   port_id: string | null
+  physical_group: string | null
   mou_regions: { name: string } | null
 }
 
@@ -44,6 +45,7 @@ export type Deficiency = {
   sub_category: string | null
   deficiency_text: string | null
   defect_text: string | null
+  is_detainable: boolean | null
 }
 
 export async function getShipByImo(imo: string): Promise<Ship | null> {
@@ -121,7 +123,7 @@ export async function getLastInspectionDate(): Promise<string | null> {
 export async function getInspectionsByShip(shipId: string): Promise<Inspection[]> {
   const { data, error } = await supabase
     .from('psc_inspections')
-    .select('id, ship_id, report_date, authority, inspection_type, detention, duration_days, num_deficiencies, mou_region_id, port_id, mou_regions(name)')
+    .select('id, ship_id, report_date, authority, inspection_type, detention, duration_days, num_deficiencies, mou_region_id, port_id, physical_group, mou_regions(name)')
     .eq('ship_id', shipId)
     .order('report_date', { ascending: false })
 
@@ -132,7 +134,7 @@ export async function getInspectionsByShip(shipId: string): Promise<Inspection[]
 export async function getDeficiencies(inspectionId: string): Promise<Deficiency[]> {
   const { data, error } = await supabase
     .from('deficiencies')
-    .select('id, inspection_id, code, category, sub_category, deficiency_text, defect_text')
+    .select('id, inspection_id, code, category, sub_category, deficiency_text, defect_text, is_detainable')
     .eq('inspection_id', inspectionId)
 
   if (error) return []

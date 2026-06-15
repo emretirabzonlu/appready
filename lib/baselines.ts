@@ -47,3 +47,42 @@ export async function getBaselinesFallback(mouRegionId: string): Promise<Baselin
   }
   return data as Baseline[]
 }
+
+export async function getBaselinesForRegions(
+  regionIds: string[],
+  shipType: string | null,
+): Promise<Map<string, Baseline[]>> {
+  if (regionIds.length === 0) return new Map()
+  const result = new Map<string, Baseline[]>()
+
+  if (shipType) {
+    const { data } = await supabase
+      .from('deficiency_baselines')
+      .select('id, mou_region_id, ship_type, category, rank, pct, is_detainable_top, period_year')
+      .in('mou_region_id', regionIds)
+      .eq('ship_type', shipType)
+      .order('rank', { ascending: true })
+    for (const b of (data ?? []) as Baseline[]) {
+      const arr = result.get(b.mou_region_id) ?? []
+      arr.push(b)
+      result.set(b.mou_region_id, arr)
+    }
+  }
+
+  const uncovered = regionIds.filter((id) => !result.has(id))
+  if (uncovered.length > 0) {
+    const { data } = await supabase
+      .from('deficiency_baselines')
+      .select('id, mou_region_id, ship_type, category, rank, pct, is_detainable_top, period_year')
+      .in('mou_region_id', uncovered)
+      .is('ship_type', null)
+      .order('rank', { ascending: true })
+    for (const b of (data ?? []) as Baseline[]) {
+      const arr = result.get(b.mou_region_id) ?? []
+      arr.push(b)
+      result.set(b.mou_region_id, arr)
+    }
+  }
+
+  return result
+}

@@ -19,6 +19,7 @@ import type { RiskLevel } from '@/app/_components/ui/RiskBadge'
 import { cn } from '@/lib/utils'
 import { getT } from '@/lib/locale'
 import { TermChip } from '@/app/_components/ui/TermChip'
+import { PdfDownloadButton } from '../_components/PdfDownloadButton'
 
 type InspectionRow = { inspection: Inspection; deficiencies: Deficiency[] }
 
@@ -126,6 +127,29 @@ export default async function ShipDetailPage({
   const baselineCatSet = new Set(baselines.map((b) => b.category))
   const overlapping = new Set([...baselineCatSet].filter((c) => catCounts.has(c)))
 
+  // Sub-items per category: most frequent specific deficiencies in each category
+  const catSubItemsRaw = new Map<string, Map<string, { display: string; count: number }>>()
+  for (const { deficiencies } of rows) {
+    for (const d of deficiencies) {
+      if (!d.category) continue
+      const raw = d.deficiency_text?.trim() || d.sub_category?.trim() || null
+      if (!raw || raw.toLowerCase() === d.category.toLowerCase()) continue
+      const norm = raw.toLowerCase()
+      const sub = catSubItemsRaw.get(d.category) ?? new Map<string, { display: string; count: number }>()
+      const entry = sub.get(norm)
+      if (entry) { entry.count++ } else {
+        sub.set(norm, { display: raw.length > 52 ? raw.slice(0, 49) + '…' : raw, count: 1 })
+      }
+      catSubItemsRaw.set(d.category, sub)
+    }
+  }
+  const catSubItems = new Map<string, string[]>(
+    [...catSubItemsRaw.entries()].map(([cat, sub]) => [
+      cat,
+      [...sub.values()].sort((a, b) => b.count - a.count).map((v) => v.display),
+    ]),
+  )
+
   // Red flags: deficiencies recurring across 2+ inspections
   const redFlags = computeRedFlags(rows)
 
@@ -187,14 +211,17 @@ export default async function ShipDetailPage({
 
   return (
     <div className="px-6 py-8 max-w-5xl mx-auto">
-      {/* Back link */}
-      <Link
-        href="/ship"
-        className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text mb-5 transition-colors"
-      >
-        <ChevronLeft size={15} />
-        {t('ship.backToList')}
-      </Link>
+      {/* Back link + PDF download */}
+      <div className="flex items-center justify-between mb-5">
+        <Link
+          href="/ship"
+          className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text transition-colors"
+        >
+          <ChevronLeft size={15} />
+          {t('ship.backToList')}
+        </Link>
+        <PdfDownloadButton imo={imo} port={port} />
+      </div>
 
       <FadeUp>
       <div className="space-y-6">
@@ -343,21 +370,32 @@ export default async function ShipDetailPage({
                       <ol className="space-y-1.5">
                         {sortedShipCats.slice(0, 8).map(([category, count]) => {
                           const isOverlap = overlapping.has(category)
+                          const subItems = catSubItems.get(category) ?? []
+                          const shownSubs = subItems.slice(0, 5)
+                          const moreSubs = subItems.length - shownSubs.length
                           return (
-                            <li key={category} className="flex items-center gap-2">
-                              <span
-                                className={cn(
-                                  'rounded-full px-3 py-0.5 text-xs flex-1 truncate',
-                                  isOverlap
-                                    ? 'bg-danger-bg text-danger-text font-medium'
-                                    : 'bg-warning-bg text-warning-text',
+                            <li key={category} className="flex items-start gap-2">
+                              <div className="flex-1 min-w-0">
+                                <span
+                                  className={cn(
+                                    'rounded-full px-3 py-0.5 text-xs font-medium',
+                                    isOverlap
+                                      ? 'bg-danger-bg text-danger-text'
+                                      : 'bg-warning-bg text-warning-text',
+                                  )}
+                                >
+                                  {category}
+                                </span>
+                                {shownSubs.length > 0 && (
+                                  <p className="text-[10px] text-text-muted mt-1 pl-1 leading-snug break-words">
+                                    {shownSubs.join(', ')}
+                                    {moreSubs > 0 && <span className="text-text-muted/60"> +{moreSubs} diğer</span>}
+                                  </p>
                                 )}
-                              >
-                                {category}
-                              </span>
+                              </div>
                               <span
                                 className={cn(
-                                  'text-xs tabular-nums shrink-0 font-medium',
+                                  'text-xs tabular-nums shrink-0 font-medium pt-0.5',
                                   isOverlap ? 'text-danger-text' : 'text-warning-text',
                                 )}
                               >
