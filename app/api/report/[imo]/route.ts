@@ -128,6 +128,7 @@ function buildHtml(opts: {
   regionBaselines: Map<string, Baseline[]>
   inspectionRegionNames: Map<string, string>
   physicalGroupConflicts: Array<{ regionNames: string[]; date: string }>
+  earliestInspYear: string | null
 }): string {
   const {
     ship, rows, certificates, baselines, redFlags, sortedChecklistItems,
@@ -136,6 +137,7 @@ function buildHtml(opts: {
     inspectionCount, detentionCount, longestDetentionDays,
     riskLabel, riskClass, mouRegionId, aiSummary,
     regionBaselines, inspectionRegionNames, physicalGroupConflicts,
+    earliestInspYear,
   } = opts
 
   const today = new Date().toLocaleDateString('tr-TR', {
@@ -155,7 +157,7 @@ function buildHtml(opts: {
       const sub = catSubItemsRaw.get(d.category) ?? new Map<string, { display: string; count: number }>()
       const entry = sub.get(norm)
       if (entry) { entry.count++ } else {
-        sub.set(norm, { display: raw.length > 52 ? raw.slice(0, 49) + '…' : raw, count: 1 })
+        sub.set(norm, { display: raw, count: 1 })
       }
       catSubItemsRaw.set(d.category, sub)
     }
@@ -166,12 +168,10 @@ function buildHtml(opts: {
       [...sub.values()].sort((a, b) => b.count - a.count).map((v) => v.display),
     ]),
   )
-  function subHtml(cat: string, limit = 5): string {
+  function subHtml(cat: string): string {
     const items = catSubItems.get(cat) ?? []
     if (items.length === 0) return ''
-    const shown = items.slice(0, limit)
-    const more = items.length - shown.length
-    return `<span class="cat-sub">${shown.map(esc).join(', ')}${more > 0 ? `<span class="cat-sub-more"> +${more} diğer</span>` : ''}</span>`
+    return `<span class="cat-sub">${items.map(esc).join(', ')}</span>`
   }
 
   // ── AI Executive Summary (optional) ────────────────────────────────────────
@@ -186,19 +186,30 @@ function buildHtml(opts: {
   const detVariant = detentionCount > 0 ? 'danger' : 'success'
   const daysVariant = longestDetentionDays !== null ? 'warning' : 'navy'
 
+  const analysisContextNote = earliestInspYear
+    ? `<div class="analysis-context-note">
+        Toplam <strong>${inspectionCount} denetim</strong> kaydı bulunmaktadır (en eski: ${earliestInspYear}).
+        Eksiklik ve kronik tekrar analizleri yalnızca detay verisi bulunan denetimlere dayanmaktadır —
+        PSC risk değerlendirmesi tipik olarak <strong>son 36 aya</strong> odaklandığından bu yaklaşım güncel performansı yansıtır.
+      </div>`
+    : ''
+
   const metricsSection = `
 <div class="section">
-  <div class="section-header">
-    <div class="section-num">${s1}</div>
-    <div class="section-title-block">
-      <div class="section-title">Özet Metrikler</div>
-      <div class="section-desc">Toplam denetim, tutulma ve bölge bilgisi</div>
+  <div class="section-anchor">
+    <div class="section-header">
+      <div class="section-num">${s1}</div>
+      <div class="section-title-block">
+        <div class="section-title">Özet Metrikler</div>
+        <div class="section-desc">Tüm kayıtlardaki toplam denetim ve tutulma${earliestInspYear ? ` — ${earliestInspYear}'den bugüne` : ''}</div>
+      </div>
     </div>
   </div>
   <div class="metrics-grid">
     <div class="metric-card metric-navy">
       <div class="metric-label">Denetim</div>
       <div class="metric-value">${inspectionCount}</div>
+      ${earliestInspYear ? `<div class="metric-sub">${earliestInspYear}'den bu yana</div>` : ''}
     </div>
     <div class="metric-card metric-${detVariant}">
       <div class="metric-label">Tutulma</div>
@@ -211,6 +222,7 @@ function buildHtml(opts: {
       ${longestDetentionDays !== null ? '<div class="metric-sub">gün</div>' : ''}
     </div>
   </div>
+  ${analysisContextNote}
 </div>`
 
   // ── Section 2: Gap Analysis ─────────────────────────────────────────────────
@@ -265,16 +277,17 @@ function buildHtml(opts: {
 
   const analysisSection = `
 <div class="section">
-  <div class="section-header">
-    <div class="section-num">${s2}</div>
-    <div class="section-title-block">
-      <div class="section-title">Çakışma Analizi</div>
-      <div class="section-desc">Bölge odak alanları ile gemi denetim geçmişinin karşılaştırması${selectedMouName ? ` — ${esc(selectedMouName)}` : ''}</div>
+  <div class="section-anchor">
+    <div class="section-header">
+      <div class="section-num">${s2}</div>
+      <div class="section-title-block">
+        <div class="section-title">Çakışma Analizi</div>
+        <div class="section-desc">Bölge odak alanları ile gemi denetim geçmişinin karşılaştırması${selectedMouName ? ` — ${esc(selectedMouName)}` : ''}</div>
+      </div>
     </div>
+    ${noPortNote || noTypeNote ? '' : `${overlapAlert}${overlapSentence}`}
   </div>
   ${noPortNote || noTypeNote || `
-    ${overlapAlert}
-    ${overlapSentence}
     <div class="analysis-grid">
       <div class="card">
         <div class="card-title">Bölge Risk Profili ${baselineIsFallback ? '(tüm gemi tipleri)' : ''}</div>
@@ -302,9 +315,10 @@ function buildHtml(opts: {
       const isTarget = regionId === mouRegionId
       const catRows = cats.map((b) => {
         const inShipHistory = shipCatSet.has(b.category)
-        const sub = inShipHistory ? subHtml(b.category, 3) : ''
+        const sub = inShipHistory ? subHtml(b.category) : ''
         return `<div class="rc-row">
           <span class="rc-num">${b.rank ?? ''}</span>
+          <span class="rc-check">☐</span>
           <div class="rc-body">
             <span class="rc-label${inShipHistory ? ' rc-label-danger' : ''}">${esc(b.category)}${inShipHistory ? ' <span class="rc-warn">⚠</span>' : ''}</span>
             ${sub}
@@ -330,11 +344,13 @@ function buildHtml(opts: {
 
     pscVariationSection = `
 <div class="section">
-  <div class="section-header">
-    <div class="section-num">${s3}</div>
-    <div class="section-title-block">
-      <div class="section-title">PSC'ye Göre Değişir</div>
-      <div class="section-desc">Geminin geçtiği MoU bölgelerinin denetim odakları — gemi geçmişiyle örtüşen kategoriler ⚠ ile işaretli</div>
+  <div class="section-anchor">
+    <div class="section-header">
+      <div class="section-num">${s3}</div>
+      <div class="section-title-block">
+        <div class="section-title">PSC'ye Göre Değişir</div>
+        <div class="section-desc">Geminin geçtiği MoU bölgelerinin denetim odakları — gemi geçmişiyle örtüşen kategoriler ⚠ ile işaretli</div>
+      </div>
     </div>
   </div>
   <div class="region-variation-grid">${regionCards}</div>
@@ -368,11 +384,13 @@ function buildHtml(opts: {
 
   const redFlagSection = `
 <div class="section">
-  <div class="section-header">
-    <div class="section-num">${sRed}</div>
-    <div class="section-title-block">
-      <div class="section-title">Kronik Eksiklikler</div>
-      <div class="section-desc">Birden fazla denetimde tekrar eden eksiklikler</div>
+  <div class="section-anchor">
+    <div class="section-header">
+      <div class="section-num">${sRed}</div>
+      <div class="section-title-block">
+        <div class="section-title">Kronik Eksiklikler</div>
+        <div class="section-desc">Birden fazla denetimde tekrar eden eksiklikler</div>
+      </div>
     </div>
   </div>
   ${redFlagRows}
@@ -409,11 +427,13 @@ function buildHtml(opts: {
 
   const certSection = `
 <div class="section">
-  <div class="section-header">
-    <div class="section-num">${s4}</div>
-    <div class="section-title-block">
-      <div class="section-title">Sertifika Durumu</div>
-      <div class="section-desc">Aktif sertifika durumu ve geçerlilik tarihleri</div>
+  <div class="section-anchor">
+    <div class="section-header">
+      <div class="section-num">${s4}</div>
+      <div class="section-title-block">
+        <div class="section-title">Sertifika Durumu</div>
+        <div class="section-desc">Aktif sertifika durumu ve geçerlilik tarihleri</div>
+      </div>
     </div>
   </div>
   ${certRows}
@@ -425,15 +445,27 @@ function buildHtml(opts: {
     ? '<p class="empty-text">Kontrol listesi için varış limanı seçilmedi.</p>'
     : sortedChecklistItems.length === 0
     ? '<p class="empty-text">Kontrol listesi öğesi bulunamadı.</p>'
-    : sortedChecklistItems.map((item) => `
-        <div class="checklist-item checklist-${item.priority}">
-          <div class="checklist-check checklist-check-${item.priority}"></div>
-          ${item.tag === 'cic' ? '<span class="tag-cic">CIC</span>' : ''}
-          <span class="checklist-label checklist-label-${item.priority}">${esc(item.label)}</span>
-          <span class="priority-badge priority-${item.priority}">
-            ${item.priority === 'high' ? 'Yüksek' : item.priority === 'medium' ? 'Orta' : 'Bölgesel'}
-          </span>
-        </div>`).join('')
+    : sortedChecklistItems.map((item) => {
+        const subItems = item.tag !== 'cic' ? (catSubItems.get(item.label) ?? []) : []
+        const priorityLabel = item.priority === 'high' ? 'Yüksek' : item.priority === 'medium' ? 'Orta' : 'Bölgesel'
+        const subItemsHtml = subItems.length > 0
+          ? `<div class="checklist-subitems">${subItems.map((si) => `
+              <div class="checklist-subitem">
+                <span class="checkbox-icon">☐</span>
+                <span class="checklist-subitem-text">${esc(si)}</span>
+              </div>`).join('')}</div>`
+          : ''
+        return `
+          <div class="checklist-group checklist-${item.priority}">
+            <div class="checklist-item">
+              <div class="checklist-check checklist-check-${item.priority}"></div>
+              ${item.tag === 'cic' ? '<span class="tag-cic">CIC</span>' : ''}
+              <span class="checklist-label checklist-label-${item.priority}">${esc(item.label)}</span>
+              <span class="priority-badge priority-${item.priority}">${priorityLabel}</span>
+            </div>
+            ${subItemsHtml}
+          </div>`
+      }).join('')
 
   const checklistNote = activeCampaign && mouRegionId
     ? `<div style="margin-bottom:10px;padding:8px 12px;background:#fef3c7;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;font-size:10px;color:#92400e">
@@ -443,11 +475,13 @@ function buildHtml(opts: {
 
   const checklistSection = `
 <div class="section">
-  <div class="section-header">
-    <div class="section-num">${s5}</div>
-    <div class="section-title-block">
-      <div class="section-title">Varış Öncesi Kontrol Listesi</div>
-      <div class="section-desc">Liman bölgesi, gemi geçmişi ve aktif kampanyaya göre önceliklendirilmiş kontroller</div>
+  <div class="section-anchor">
+    <div class="section-header">
+      <div class="section-num">${s5}</div>
+      <div class="section-title-block">
+        <div class="section-title">Varış Öncesi Kontrol Listesi</div>
+        <div class="section-desc">Liman bölgesi, gemi geçmişi ve aktif kampanyaya göre önceliklendirilmiş kontroller</div>
+      </div>
     </div>
   </div>
   ${checklistNote}
@@ -464,13 +498,20 @@ function buildHtml(opts: {
       <td>${inspection.detention ? '<span class="status-badge status-expired">Tutulma</span>' : '—'}</td>
     </tr>`).join('')
 
+  const inspHistoryNote = rows.length > 10
+    ? `<div class="insp-history-note">Toplam <strong>${rows.length} denetim</strong>${earliestInspYear ? ` · en eskisi ${earliestInspYear}` : ''} · Son ${Math.min(10, rows.length)} denetim gösteriliyor (en yeni üstte)</div>`
+    : ''
+
   const inspectionSection = rows.length > 0 ? `
-<div class="section" style="margin-top:8px">
-  <div class="section-header">
-    <div class="section-title-block">
-      <div class="section-title" style="font-size:12px;color:#6b7280">Denetim Geçmişi${rows.length > 10 ? ` (son 10 / toplam ${rows.length})` : ''}</div>
+<div class="section">
+  <div class="section-anchor">
+    <div class="section-header">
+      <div class="section-title-block">
+        <div class="section-title" style="font-size:12px;color:#6b7280">Denetim Geçmişi</div>
+      </div>
     </div>
   </div>
+  ${inspHistoryNote}
   <table>
     <thead>
       <tr>
@@ -495,12 +536,12 @@ function buildHtml(opts: {
 <meta charset="UTF-8">
 <title>PSC Hazırlık Raporu — ${esc(ship.name)}</title>
 <style>
-@page{margin:20mm 0 15mm 0}
+@page{size:A4;margin:20mm 0 14mm 0}
 @page :first{margin-top:0;margin-bottom:0}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:11px;color:#1a2540;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:11px;color:#1a2540;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;orphans:3;widows:3}
 
-.hero{background:linear-gradient(135deg,#0f2747 0%,#1a3a6e 60%,#0f4c8a 100%);color:#fff;padding:32px 40px 28px}
+.hero{background:linear-gradient(135deg,#0f2747 0%,#1a3a6e 60%,#0f4c8a 100%);color:#fff;padding:32px 40px 28px;break-inside:avoid;page-break-inside:avoid}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
 .logo{font-size:22px;font-weight:800;letter-spacing:-0.5px}
 .logo span{color:#60a5fa}
@@ -516,17 +557,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .ship-meta-item{font-size:10.5px;color:rgba(255,255,255,.65);padding-right:10px;margin-right:10px;border-right:1px solid rgba(255,255,255,.15)}
 .ship-meta-item:last-child{border-right:none}
 
-.content{padding:28px 40px 24px}
+.content{padding:22px 40px 20px}
 
-.section{margin-bottom:24px}
-.section-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;break-after:avoid}
+/* ─── Section layout ─────────────────────────────────────────── */
+.section{margin-bottom:20px}
+/* section-anchor: header + small intro elements, kept together as one unit */
+/* Small enough (~40-80px) to always fit at page bottom → no orphan headers */
+.section-anchor{break-inside:avoid;page-break-inside:avoid;break-after:avoid;page-break-after:avoid;margin-bottom:10px}
+.section-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:0}
 .section-num{width:22px;height:22px;border-radius:50%;background:#0f2747;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 .section-title-block{border-left:3px solid #0f2747;padding-left:10px}
 .section-title{font-size:13px;font-weight:700;color:#0f2747}
 .section-desc{font-size:9.5px;color:#6b7280;margin-top:2px}
 
-.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.metric-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;break-inside:avoid}
+/* ─── Metrics ────────────────────────────────────────────────── */
+.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;break-inside:avoid;page-break-inside:avoid}
+.metric-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;break-inside:avoid;page-break-inside:avoid}
 .metric-label{font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
 .metric-value{font-size:24px;font-weight:700;line-height:1}
 .metric-sub{font-size:9px;color:#9ca3af;margin-top:3px}
@@ -535,32 +581,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .metric-warning .metric-value{color:#d97706}
 .metric-success .metric-value{color:#16a34a}
 
-.risk-alert{display:flex;align-items:center;gap:8px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:7px 12px;margin-bottom:10px}
+/* ─── Overlap alerts ─────────────────────────────────────────── */
+.risk-alert{display:flex;align-items:center;gap:8px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:7px 12px;margin-top:8px}
 .risk-alert-text{font-size:10px;color:#dc2626}
-.overlap-sentence{font-size:10px;color:#374151;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;margin-bottom:10px}
+.overlap-sentence{font-size:10px;color:#374151;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;margin-top:6px}
 .overlap-sentence-danger{background:#fef2f2;border-color:#fecaca;color:#dc2626}
 .overlap-sentence strong{font-weight:700}
 
-.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.region-variation-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
+/* ─── Analysis grids → stacked single column for reliable page flow ── */
+.analysis-grid{display:block}
+.analysis-grid>.card{margin-bottom:10px}
+.analysis-grid>.card:last-child{margin-bottom:0}
+.region-variation-grid{display:block}
+.region-variation-grid>.card{margin-bottom:8px}
+.region-variation-grid>.card:last-child{margin-bottom:0}
+
 .target-region-badge{display:inline-block;padding:1px 5px;border-radius:3px;font-size:8px;font-weight:700;background:#dbeafe;color:#1d4ed8;margin-left:4px;text-transform:none;letter-spacing:0}
-.conflict-note{display:flex;align-items:flex-start;gap:6px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:6px 10px;margin-top:8px;font-size:9.5px;color:#92400e}
+.conflict-note{display:flex;align-items:flex-start;gap:6px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:6px 10px;margin-top:8px;font-size:9.5px;color:#92400e;break-inside:avoid;page-break-inside:avoid}
 .conflict-icon{flex-shrink:0}
 .conflict-text strong{font-weight:700}
-.shipcat-row{display:flex;align-items:flex-start;gap:6px;margin-bottom:6px}
+.shipcat-row{display:flex;align-items:flex-start;gap:6px;margin-bottom:5px;break-inside:avoid;page-break-inside:avoid}
 .shipcat-body{flex:1;min-width:0}
 .shipcat-count{flex-shrink:0;padding-top:2px}
 .cat-sub{display:block;font-size:8px;color:#9ca3af;margin-top:3px;line-height:1.35;word-break:break-word}
-.cat-sub-more{color:#cbd5e1}
-.rc-row{display:flex;align-items:flex-start;gap:5px;margin-bottom:4px}
-.rc-num{font-size:8px;color:#9ca3af;width:13px;flex-shrink:0;padding-top:3px;text-align:right}
+.rc-row{display:flex;align-items:flex-start;gap:5px;margin-bottom:5px;break-inside:avoid;page-break-inside:avoid}
+.rc-num{font-size:8px;color:#9ca3af;width:13px;flex-shrink:0;padding-top:2px;text-align:right}
+.rc-check{font-size:10px;color:#9ca3af;flex-shrink:0;line-height:1.4;margin-top:1px}
 .rc-body{flex:1;min-width:0}
 .rc-label{display:block;font-size:9px;line-height:1.35;word-break:break-word;padding:2px 6px;border-radius:4px;background:#f1f5f9;color:#6b7280}
 .rc-label-danger{background:#fef2f2;color:#dc2626;font-weight:600}
 .rc-warn{font-style:normal;font-size:8px}
-.card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;break-inside:avoid}
-.card-title{font-size:9px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
-.analysis-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+/* Cards: break-inside:avoid safe now — no more side-by-side grid */
+.card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;break-inside:avoid;page-break-inside:avoid}
+.card-title{font-size:9px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;break-after:avoid;page-break-after:avoid}
+.analysis-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;break-inside:avoid;page-break-inside:avoid}
 .analysis-rank{font-size:9px;color:#9ca3af;width:14px;text-align:right;flex-shrink:0}
 .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pill-danger{background:#fef2f2;color:#dc2626;font-weight:600}
@@ -569,9 +623,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .count-danger{color:#dc2626;font-weight:600;font-size:9.5px;flex-shrink:0}
 .count-warning{color:#d97706;font-weight:600;font-size:9.5px;flex-shrink:0}
 
+/* ─── Red flags ──────────────────────────────────────────────── */
 .redflag-col-header{display:flex;align-items:center;font-size:8.5px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;padding:0 12px 4px;border-bottom:1px solid #f1f5f9}
 .redflag-det-header{flex-shrink:0;width:90px;text-align:right}
-.redflag-item{display:flex;align-items:flex-start;gap:8px;border-left:3px solid #dc2626;background:rgba(254,242,242,.45);padding:8px 12px;border-radius:0 6px 6px 0;margin-bottom:7px;break-inside:avoid}
+.redflag-item{display:flex;align-items:flex-start;gap:8px;border-left:3px solid #dc2626;background:rgba(254,242,242,.45);padding:8px 12px;border-radius:0 6px 6px 0;margin-bottom:7px;break-inside:avoid;page-break-inside:avoid}
 .redflag-body{flex:1;min-width:0}
 .redflag-text{font-size:10.5px;font-weight:600;color:#1a2540;margin-bottom:3px}
 .redflag-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -582,9 +637,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .det-no{background:#f1f5f9;color:#9ca3af}
 .date-pill{font-size:9.5px;color:#6b7280;background:#f1f5f9;padding:1px 5px;border-radius:3px;font-variant-numeric:tabular-nums}
 
-table{width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
+/* ─── Tables ─────────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;break-inside:auto;page-break-inside:auto}
+thead{display:table-header-group}
 th{font-size:9px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:7px 10px;background:#f8fafc;border-bottom:1px solid #e2e8f0}
 td{font-size:10.5px;padding:7px 10px;border-bottom:1px solid #f1f5f9;color:#374151;vertical-align:middle}
+tr{break-inside:avoid;page-break-inside:avoid}
 tr:last-child td{border-bottom:none}
 .cert-name{font-weight:600;color:#0f2747}
 .status-badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700}
@@ -593,7 +651,13 @@ tr:last-child td{border-bottom:none}
 .status-valid{background:#f0fdf4;color:#16a34a}
 .interim-badge{display:inline-block;padding:1px 5px;border-radius:3px;font-size:8px;font-weight:700;background:#fffbeb;color:#d97706;margin-left:5px}
 
-.checklist-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;margin-bottom:5px}
+/* ─── Checklist ──────────────────────────────────────────────── */
+.checklist-group{border-radius:7px;overflow:hidden;margin-bottom:6px;break-inside:avoid;page-break-inside:avoid}
+.checklist-item{display:flex;align-items:center;gap:8px;padding:7px 10px}
+.checklist-subitems{padding:2px 10px 8px 30px}
+.checklist-subitem{display:flex;align-items:flex-start;gap:6px;padding:2px 0}
+.checkbox-icon{font-size:11px;flex-shrink:0;line-height:1.3;color:#6b7280}
+.checklist-subitem-text{font-size:9.5px;line-height:1.4;color:#374151;word-break:break-word}
 .checklist-high{background:rgba(254,242,242,.55)}
 .checklist-medium{background:rgba(255,251,235,.55)}
 .checklist-regional{background:#f8fafc}
@@ -611,13 +675,17 @@ tr:last-child td{border-bottom:none}
 .priority-regional{background:rgba(96,165,250,.1);color:#3b82f6}
 .tag-cic{display:inline-block;padding:1px 5px;border-radius:3px;font-size:8.5px;font-weight:700;background:#fffbeb;color:#d97706;margin-right:4px;flex-shrink:0}
 
+/* ─── Utility ────────────────────────────────────────────────── */
 .empty-text{font-size:10px;color:#9ca3af;font-style:italic;padding:6px 2px}
+.analysis-context-note{margin-top:10px;padding:7px 12px;background:#f0f9ff;border:1px solid #bae6fd;border-left:3px solid #0ea5e9;border-radius:0 6px 6px 0;font-size:9px;color:#0c4a6e;line-height:1.5;break-inside:avoid;page-break-inside:avoid}
+.analysis-context-note strong{font-weight:700}
+.insp-history-note{margin-bottom:8px;font-size:9px;color:#6b7280;padding:5px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px}
 
-.ai-summary{background:linear-gradient(135deg,#eff6ff 0%,#f0f9ff 100%);border:1px solid #bfdbfe;border-left:4px solid #3b82f6;border-radius:8px;padding:14px 16px;margin-bottom:20px}
+.ai-summary{background:linear-gradient(135deg,#eff6ff 0%,#f0f9ff 100%);border:1px solid #bfdbfe;border-left:4px solid #3b82f6;border-radius:8px;padding:14px 16px;margin-bottom:18px;break-inside:avoid;page-break-inside:avoid}
 .ai-summary-label{font-size:8.5px;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
 .ai-summary-text{font-size:10.5px;color:#1e3a5f;line-height:1.55}
 
-.footer{margin-top:24px;padding-top:14px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center}
+.footer{margin-top:20px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;break-inside:avoid;page-break-inside:avoid}
 .footer-note{font-size:9px;color:#9ca3af;max-width:70%}
 .footer-date{font-size:9px;color:#9ca3af;white-space:nowrap}
 </style>
@@ -760,6 +828,11 @@ export async function GET(
   }
   const inspectionRegionIds = [...inspectionRegionNames.keys()]
 
+  // rows are sorted newest-first; oldest is last
+  const earliestInspYear = rows.length > 0
+    ? rows[rows.length - 1].inspection.report_date.slice(0, 4)
+    : null
+
   const [aiSummary, regionBaselinesEntries] = await Promise.all([
     generateExecutiveSummary({
       shipName: ship.name,
@@ -776,6 +849,7 @@ export async function GET(
       expiringCertCount: certificates.filter((c) => c.status === 'expiring').length,
       activeCampaignTopic: activeCampaign?.topic ?? null,
       selectedMouName,
+      earliestInspectionYear: earliestInspYear,
     }),
     Promise.all(
       inspectionRegionIds.map(async (regionId): Promise<[string, Baseline[]]> => {
@@ -814,6 +888,7 @@ export async function GET(
     inspectionCount, detentionCount, longestDetentionDays,
     riskLabel, riskClass, mouRegionId, aiSummary,
     regionBaselines, inspectionRegionNames, physicalGroupConflicts,
+    earliestInspYear,
   })
 
   const browser = await launchBrowser()
@@ -823,7 +898,8 @@ export async function GET(
     const pdfBytes = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: { top: '0', right: '0', bottom: '0', left: '0' },
+      margin: { top: '0mm', right: '0mm', bottom: '0mm', left: '0mm' },
+      preferCSSPageSize: true,
     })
     return new Response(Buffer.from(pdfBytes), {
       headers: {

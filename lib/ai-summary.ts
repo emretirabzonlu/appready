@@ -15,6 +15,7 @@ export interface SummaryInput {
   expiringCertCount: number
   activeCampaignTopic: string | null
   selectedMouName: string | null
+  earliestInspectionYear: string | null
 }
 
 export async function generateExecutiveSummary(input: SummaryInput): Promise<string | null> {
@@ -40,6 +41,9 @@ export async function generateExecutiveSummary(input: SummaryInput): Promise<str
     input.selectedMouName ? `Hedef Liman Bölgesi: ${input.selectedMouName}` : null,
     input.shipType ? `Gemi Tipi: ${input.shipType}` : null,
     input.flag ? `Bayrak: ${input.flag}` : null,
+    input.earliestInspectionYear
+      ? `Denetim Geçmişi: İlk kayıt ${input.earliestInspectionYear} yılına ait (toplam ${input.inspectionCount} denetim tüm dönem için sayılmıştır). Eksiklik analizi yalnızca detay kaydı bulunan denetimlere dayanmaktadır; PSC risk değerlendirmesi tipik olarak son 36 aya odaklanır.`
+      : null,
   ].filter(Boolean as unknown as <T>(x: T | null) => x is T)
 
   const prompt = `Aşağıdaki PSC (Liman Devleti Kontrolü) denetim verilerine dayanarak, 2-3 cümlelik kısa bir yönetici özeti yaz.
@@ -51,6 +55,7 @@ Kurallar:
 - Abartma ve panik dili kullanma. Profesyonel, sakin, bilgilendirici ol. Veriye dayan ama dramatize etme.
 - Sertifika verisi geçmiş bir denetim tarihine ait olabilir; "süresi geçmiş" derken kesin hüküm yerine "kayıtlara göre süresi geçmiş görünüyor, güncel durum doğrulanmalı" gibi temkinli ol.
 - Risk seviyesiyle çelişme — eğer süresi geçmiş kritik sertifika varsa gemiyi düşük riskli olarak tanımlama.
+- Gemi uzun bir denetim geçmişine sahipse (örn. 2005'ten beri kayıt varsa) bunu kısaca belirt ve PSC'nin son 36 aya odaklandığını, dolayısıyla analizin güncel performansı yansıttığını vurgula.
 - Sadece özet metnini yaz — başlık, madde işareti veya ek açıklama ekleme.
 
 Veriler:

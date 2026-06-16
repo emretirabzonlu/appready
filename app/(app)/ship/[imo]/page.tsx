@@ -21,6 +21,8 @@ import { cn } from '@/lib/utils'
 import { getT } from '@/lib/locale'
 import { TermChip } from '@/app/_components/ui/TermChip'
 import { PdfDownloadButton } from '../_components/PdfDownloadButton'
+import { PortLoadingProvider } from '../_components/PortLoadingContext'
+import { PortSectionsWrapper } from '../_components/PortSectionsWrapper'
 
 type InspectionRow = { inspection: Inspection; deficiencies: Deficiency[] }
 
@@ -34,6 +36,7 @@ type ChecklistItem = {
   label: string
   priority: 'high' | 'medium' | 'regional'
   tag: 'cic' | 'overlap' | 'baseline' | 'ship'
+  subItems: string[]
 }
 
 function computeRedFlags(rows: InspectionRow[]): RedFlag[] {
@@ -139,7 +142,7 @@ export default async function ShipDetailPage({
       const sub = catSubItemsRaw.get(d.category) ?? new Map<string, { display: string; count: number }>()
       const entry = sub.get(norm)
       if (entry) { entry.count++ } else {
-        sub.set(norm, { display: raw.length > 52 ? raw.slice(0, 49) + '…' : raw, count: 1 })
+        sub.set(norm, { display: raw, count: 1 })
       }
       catSubItemsRaw.set(d.category, sub)
     }
@@ -158,23 +161,23 @@ export default async function ShipDetailPage({
   const checklistItems: ChecklistItem[] = []
   if (mouRegionId) {
     if (activeCampaign) {
-      checklistItems.push({ label: activeCampaign.topic, priority: 'high', tag: 'cic' })
+      checklistItems.push({ label: activeCampaign.topic, priority: 'high', tag: 'cic', subItems: [] })
     }
     // HIGH: in both baseline AND ship history
     for (const cat of overlapping) {
-      checklistItems.push({ label: cat, priority: 'high', tag: 'overlap' })
+      checklistItems.push({ label: cat, priority: 'high', tag: 'overlap', subItems: catSubItems.get(cat) ?? [] })
     }
     // MEDIUM: in ship history only (not in baseline)
     for (const [cat] of sortedShipCats
       .filter(([c]) => !baselineCatSet.has(c))
       .slice(0, 3)) {
       if (!checklistItems.some((i) => i.label === cat)) {
-        checklistItems.push({ label: cat, priority: 'medium', tag: 'ship' })
+        checklistItems.push({ label: cat, priority: 'medium', tag: 'ship', subItems: catSubItems.get(cat) ?? [] })
       }
     }
     // REGIONAL: in baseline only (ship has no history — regional focus, check anyway)
     for (const b of baselines.filter((b) => !overlapping.has(b.category))) {
-      checklistItems.push({ label: b.category, priority: 'regional', tag: 'baseline' })
+      checklistItems.push({ label: b.category, priority: 'regional', tag: 'baseline', subItems: [] })
     }
   }
   const priorityOrder: Record<ChecklistItem['priority'], number> = { high: 0, medium: 1, regional: 2 }
@@ -212,6 +215,12 @@ export default async function ShipDetailPage({
 
   const detentionVariant = detentionCount > 0 ? 'danger' : 'success'
   const detentionDaysVariant = longestDetentionDays !== null ? 'warning' : 'navy'
+
+  // rows are sorted newest-first; oldest is last
+  const earliestInspYear = rows.length > 0
+    ? rows[rows.length - 1].inspection.report_date.slice(0, 4)
+    : null
+  const shownInspRows = rows.slice(0, 10)
 
   // Dynamic step numbering
   let _step = 0
@@ -289,7 +298,8 @@ export default async function ShipDetailPage({
           />
         </div>
 
-        {/* Port selector */}
+        {/* Port selector + port-dependent sections */}
+        <PortLoadingProvider>
         <div className="space-y-1.5">
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-text">{t('port.label')}:</span>
@@ -306,7 +316,7 @@ export default async function ShipDetailPage({
 
         {/* Gap analysis */}
         {analysisStep && (
-          <div>
+          <PortSectionsWrapper><div>
             <SectionHeader
               step={analysisStep}
               title={t('section.analysis.title')}
@@ -383,8 +393,6 @@ export default async function ShipDetailPage({
                         {sortedShipCats.slice(0, 8).map(([category, count]) => {
                           const isOverlap = overlapping.has(category)
                           const subItems = catSubItems.get(category) ?? []
-                          const shownSubs = subItems.slice(0, 5)
-                          const moreSubs = subItems.length - shownSubs.length
                           return (
                             <li key={category} className="flex items-start gap-2">
                               <div className="flex-1 min-w-0">
@@ -398,10 +406,9 @@ export default async function ShipDetailPage({
                                 >
                                   {category}
                                 </span>
-                                {shownSubs.length > 0 && (
+                                {subItems.length > 0 && (
                                   <p className="text-[10px] text-text-muted mt-1 pl-1 leading-snug break-words">
-                                    {shownSubs.join(', ')}
-                                    {moreSubs > 0 && <span className="text-text-muted/60"> +{moreSubs} diğer</span>}
+                                    {subItems.join(', ')}
                                   </p>
                                 )}
                               </div>
@@ -427,7 +434,7 @@ export default async function ShipDetailPage({
                 </div>
               </>
             )}
-          </div>
+          </div></PortSectionsWrapper>
         )}
 
         {/* Red Flags */}
@@ -535,18 +542,18 @@ export default async function ShipDetailPage({
 
         {/* Pre-arrival Checklist */}
         {checklistStep && (
-          <div>
+          <PortSectionsWrapper><div>
             <SectionHeader
               step={checklistStep}
               title={t('section.checklist.title')}
               description={t('section.checklist.desc')}
             />
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {sortedChecklistItems.map((item, i) => (
                 <div
                   key={i}
                   className={cn(
-                    'flex items-center gap-3 rounded-md px-4 py-2.5',
+                    'rounded-md overflow-hidden',
                     item.priority === 'high'
                       ? 'bg-danger-bg/40'
                       : item.priority === 'medium'
@@ -554,56 +561,78 @@ export default async function ShipDetailPage({
                       : 'bg-page-bg',
                   )}
                 >
-                  <Square
-                    size={14}
-                    className={cn(
-                      'shrink-0',
-                      item.priority === 'high'
-                        ? 'text-danger-text'
-                        : item.priority === 'medium'
-                        ? 'text-warning-text'
-                        : 'text-accent/40',
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      'flex-1 text-sm',
-                      item.priority === 'high'
-                        ? 'text-danger-text font-medium'
-                        : item.priority === 'medium'
-                        ? 'text-warning-text'
-                        : 'text-text-muted',
-                    )}
-                  >
-                    <TermChip>{item.label}</TermChip>
-                  </span>
-                  {item.tag === 'cic' && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-warning-bg text-warning-text font-semibold">
-                      CIC
+                  <div className="flex items-center gap-3 px-4 py-2.5">
+                    <Square
+                      size={14}
+                      className={cn(
+                        'shrink-0',
+                        item.priority === 'high'
+                          ? 'text-danger-text'
+                          : item.priority === 'medium'
+                          ? 'text-warning-text'
+                          : 'text-accent/40',
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        'flex-1 text-sm font-medium',
+                        item.priority === 'high'
+                          ? 'text-danger-text'
+                          : item.priority === 'medium'
+                          ? 'text-warning-text'
+                          : 'text-text-muted',
+                      )}
+                    >
+                      <TermChip>{item.label}</TermChip>
                     </span>
+                    {item.tag === 'cic' && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-warning-bg text-warning-text font-semibold">
+                        CIC
+                      </span>
+                    )}
+                    <span
+                      className={cn(
+                        'text-[10px] px-2 py-0.5 rounded font-semibold leading-none',
+                        item.priority === 'high'
+                          ? 'bg-danger-text/15 text-danger-text'
+                          : item.priority === 'medium'
+                          ? 'bg-warning-text/15 text-warning-text'
+                          : 'bg-accent/10 text-accent',
+                      )}
+                    >
+                      {t(
+                        item.priority === 'high'
+                          ? 'checklist.priority.high'
+                          : item.priority === 'medium'
+                          ? 'checklist.priority.medium'
+                          : 'checklist.priority.regional',
+                      )}
+                    </span>
+                  </div>
+                  {item.subItems.length > 0 && (
+                    <div className="px-4 pb-3 space-y-1.5 pl-11">
+                      {item.subItems.map((si, j) => (
+                        <div key={j} className="flex items-start gap-2">
+                          <Square
+                            size={11}
+                            className={cn(
+                              'shrink-0 mt-0.5',
+                              item.priority === 'high'
+                                ? 'text-danger-text/70'
+                                : item.priority === 'medium'
+                                ? 'text-warning-text/70'
+                                : 'text-accent/30',
+                            )}
+                          />
+                          <span className="text-xs text-text leading-snug">{si}</span>
+                        </div>
+                      ))}
+                    </div>
                   )}
-                  <span
-                    className={cn(
-                      'text-[10px] px-2 py-0.5 rounded font-semibold leading-none',
-                      item.priority === 'high'
-                        ? 'bg-danger-text/15 text-danger-text'
-                        : item.priority === 'medium'
-                        ? 'bg-warning-text/15 text-warning-text'
-                        : 'bg-accent/10 text-accent',
-                    )}
-                  >
-                    {t(
-                      item.priority === 'high'
-                        ? 'checklist.priority.high'
-                        : item.priority === 'medium'
-                        ? 'checklist.priority.medium'
-                        : 'checklist.priority.regional',
-                    )}
-                  </span>
                 </div>
               ))}
             </div>
-          </div>
+          </div></PortSectionsWrapper>
         )}
 
         {/* Inspections */}
@@ -618,7 +647,14 @@ export default async function ShipDetailPage({
             <p className="text-sm text-text-muted">{t('inspection.noRecord')}</p>
           ) : (
             <div className="space-y-3">
-              {rows.map(({ inspection, deficiencies }) => (
+              {rows.length > 10 && (
+                <p className="text-xs text-text-muted bg-border/40 rounded-md px-3 py-2">
+                  Toplam <span className="font-medium text-text">{rows.length} denetim</span>
+                  {earliestInspYear ? ` · en eskisi ${earliestInspYear}` : ''}
+                  {' · '}Son {shownInspRows.length} denetim gösteriliyor (en yeni üstte)
+                </p>
+              )}
+              {shownInspRows.map(({ inspection, deficiencies }) => (
                 <Card key={inspection.id} className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -675,6 +711,8 @@ export default async function ShipDetailPage({
             </div>
           )}
         </div>
+        </PortLoadingProvider>
+
       </div>
       </FadeUp>
     </div>
