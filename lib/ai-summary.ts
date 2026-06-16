@@ -47,8 +47,10 @@ export async function generateExecutiveSummary(input: SummaryInput): Promise<str
 Kurallar:
 - Türkçe yaz; gemi adını kullanma ("bu gemi" diyebilirsin).
 - Kronik eksiklik SAYISI verme (ör. "10 kronik eksiklik" deme). Bunun yerine en kritik 2-3 tekrar eden kalemi ADIYLA belirt (ör. "acil jeneratör, yangın söndürme, kurtarma botu").
-- Sayı şişirme ve dramatize etme; sadece veride gerçekten olan durumları yansıt.
-- En kritik risk faktörlerini ve en acil aksiyon noktalarını net vurgula.
+- Sen bir hazırlık/uyarı aracısın, otorite değilsin. "Gemi seyretmemeli", "yasaklanmalı", "operasyon durdurulmalı" gibi HÜKÜM verme. Bunun yerine "şu riskler var, şunlara dikkat edilmeli, şu sertifikalar yenilenmeli" gibi UYARI ve ÖNERİ dilinde yaz.
+- Abartma ve panik dili kullanma. Profesyonel, sakin, bilgilendirici ol. Veriye dayan ama dramatize etme.
+- Sertifika verisi geçmiş bir denetim tarihine ait olabilir; "süresi geçmiş" derken kesin hüküm yerine "kayıtlara göre süresi geçmiş görünüyor, güncel durum doğrulanmalı" gibi temkinli ol.
+- Risk seviyesiyle çelişme — eğer süresi geçmiş kritik sertifika varsa gemiyi düşük riskli olarak tanımlama.
 - Sadece özet metnini yaz — başlık, madde işareti veya ek açıklama ekleme.
 
 Veriler:

@@ -16,6 +16,7 @@ import { SectionHeader } from '@/app/_components/ui/SectionHeader'
 import { Card } from '@/app/_components/ui/Card'
 import { RiskBadge } from '@/app/_components/ui/RiskBadge'
 import type { RiskLevel } from '@/app/_components/ui/RiskBadge'
+import { computeRisk, isCriticalCert } from '@/lib/fleet'
 import { cn } from '@/lib/utils'
 import { getT } from '@/lib/locale'
 import { TermChip } from '@/app/_components/ui/TermChip'
@@ -188,15 +189,26 @@ export default async function ShipDetailPage({
     if (!r.inspection.detention || r.inspection.duration_days == null) return max
     return max === null || r.inspection.duration_days > max ? r.inspection.duration_days : max
   }, null)
+  const totalDeficiencies = rows.reduce((sum, r) => sum + (r.inspection.num_deficiencies ?? 0), 0)
+  const expiredCerts = certificates.filter((c) => c.status === 'expired')
+  const shipRisk = inspectionCount === 0 ? null : computeRisk({
+    detentionCount,
+    yearBuilt: ship.year_built,
+    totalDeficiencies,
+    expiredCertCount: expiredCerts.length,
+    hasCriticalExpiredCert: expiredCerts.some((c) => isCriticalCert(c.cert_type)),
+    expiringCertCount: certificates.filter((c) => c.status === 'expiring').length,
+    redFlagCount: redFlags.length,
+    nonIacsClass: ship.class_society != null && !ship.class_society.includes('(IACS)'),
+  })
   const riskLevel: RiskLevel =
-    inspectionCount === 0 ? 'neutral' :
-    detentionCount >= 2 ? 'danger' :
-    detentionCount === 1 ? 'warning' : 'success'
+    shipRisk === 'high' ? 'danger' :
+    shipRisk === 'medium' ? 'warning' :
+    shipRisk === 'low' ? 'success' : 'neutral'
   const riskLabel =
-    inspectionCount === 0 ? undefined :
-    detentionCount >= 2 ? t('risk.high') :
-    detentionCount === 1 ? t('risk.medium') :
-    t('risk.low')
+    shipRisk === 'high' ? t('risk.high') :
+    shipRisk === 'medium' ? t('risk.medium') :
+    shipRisk === 'low' ? t('risk.low') : undefined
 
   const detentionVariant = detentionCount > 0 ? 'danger' : 'success'
   const detentionDaysVariant = longestDetentionDays !== null ? 'warning' : 'navy'

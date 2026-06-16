@@ -1,5 +1,4 @@
 import { NextRequest } from 'next/server'
-import puppeteer from 'puppeteer'
 import { getShipByImo, getInspectionsByShip, getDeficiencies } from '@/lib/ships'
 import type { Ship, Inspection, Deficiency } from '@/lib/ships'
 import { getPorts } from '@/lib/ports'
@@ -10,6 +9,27 @@ import type { CertWithStatus } from '@/lib/certificates'
 import { getActiveCampaign } from '@/lib/cic'
 import type { CicCampaign } from '@/lib/cic'
 import { generateExecutiveSummary } from '@/lib/ai-summary'
+import { computeRisk, isCriticalCert } from '@/lib/fleet'
+
+export const runtime = 'nodejs'
+export const maxDuration = 60
+
+async function launchBrowser() {
+  if (process.env.VERCEL) {
+    const chromium = (await import('@sparticuz/chromium')).default
+    const { default: puppeteerCore } = await import('puppeteer-core')
+    return puppeteerCore.launch({
+      args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+      executablePath: await chromium.executablePath(),
+      headless: true,
+    })
+  }
+  const { default: puppeteer } = await import('puppeteer')
+  return puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  })
+}
 
 type InspectionRow = { inspection: Inspection; deficiencies: Deficiency[] }
 type RedFlag = {
@@ -716,14 +736,20 @@ export async function GET(
     return max === null || r.inspection.duration_days > max ? r.inspection.duration_days : max
   }, null)
 
-  const riskLabel =
-    inspectionCount === 0 ? 'Bilinmiyor' :
-    detentionCount >= 2 ? 'Yüksek Risk' :
-    detentionCount === 1 ? 'Orta Risk' : 'Düşük Risk'
-  const riskClass =
-    inspectionCount === 0 ? 'neutral' :
-    detentionCount >= 2 ? 'danger' :
-    detentionCount === 1 ? 'warning' : 'success'
+  const totalDeficiencies = rows.reduce((sum, r) => sum + (r.inspection.num_deficiencies ?? 0), 0)
+  const expiredCerts = certificates.filter((c) => c.status === 'expired')
+  const shipRisk = inspectionCount === 0 ? null : computeRisk({
+    detentionCount,
+    yearBuilt: ship.year_built,
+    totalDeficiencies,
+    expiredCertCount: expiredCerts.length,
+    hasCriticalExpiredCert: expiredCerts.some((c) => isCriticalCert(c.cert_type)),
+    expiringCertCount: certificates.filter((c) => c.status === 'expiring').length,
+    redFlagCount: redFlags.length,
+    nonIacsClass: ship.class_society != null && !ship.class_society.includes('(IACS)'),
+  })
+  const riskLabel = shipRisk === 'high' ? 'Yüksek Risk' : shipRisk === 'medium' ? 'Orta Risk' : shipRisk === 'low' ? 'Düşük Risk' : 'Bilinmiyor'
+  const riskClass = shipRisk === 'high' ? 'danger' : shipRisk === 'medium' ? 'warning' : shipRisk === 'low' ? 'success' : 'neutral'
 
   // ── Section-3 data: per-region baselines from inspection history ───────────
   const inspectionRegionNames = new Map<string, string>()
@@ -790,10 +816,7 @@ export async function GET(
     regionBaselines, inspectionRegionNames, physicalGroupConflicts,
   })
 
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  })
+  const browser = await launchBrowser()
   try {
     const page = await browser.newPage()
     await page.setContent(html, { waitUntil: 'load' })
