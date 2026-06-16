@@ -518,15 +518,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 
 .content{padding:28px 40px 24px}
 
-.section{margin-bottom:24px;page-break-inside:avoid}
-.section-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.section{margin-bottom:24px}
+.section-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;break-after:avoid}
 .section-num{width:22px;height:22px;border-radius:50%;background:#0f2747;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 .section-title-block{border-left:3px solid #0f2747;padding-left:10px}
 .section-title{font-size:13px;font-weight:700;color:#0f2747}
 .section-desc{font-size:9.5px;color:#6b7280;margin-top:2px}
 
 .metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.metric-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px}
+.metric-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;break-inside:avoid}
 .metric-label{font-size:9px;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
 .metric-value{font-size:24px;font-weight:700;line-height:1}
 .metric-sub{font-size:9px;color:#9ca3af;margin-top:3px}
@@ -558,7 +558,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .rc-label{display:block;font-size:9px;line-height:1.35;word-break:break-word;padding:2px 6px;border-radius:4px;background:#f1f5f9;color:#6b7280}
 .rc-label-danger{background:#fef2f2;color:#dc2626;font-weight:600}
 .rc-warn{font-style:normal;font-size:8px}
-.card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px}
+.card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;break-inside:avoid}
 .card-title{font-size:9px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
 .analysis-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
 .analysis-rank{font-size:9px;color:#9ca3af;width:14px;text-align:right;flex-shrink:0}
@@ -571,7 +571,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 
 .redflag-col-header{display:flex;align-items:center;font-size:8.5px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;padding:0 12px 4px;border-bottom:1px solid #f1f5f9}
 .redflag-det-header{flex-shrink:0;width:90px;text-align:right}
-.redflag-item{display:flex;align-items:flex-start;gap:8px;border-left:3px solid #dc2626;background:rgba(254,242,242,.45);padding:8px 12px;border-radius:0 6px 6px 0;margin-bottom:7px}
+.redflag-item{display:flex;align-items:flex-start;gap:8px;border-left:3px solid #dc2626;background:rgba(254,242,242,.45);padding:8px 12px;border-radius:0 6px 6px 0;margin-bottom:7px;break-inside:avoid}
 .redflag-body{flex:1;min-width:0}
 .redflag-text{font-size:10.5px;font-weight:600;color:#1a2540;margin-bottom:3px}
 .redflag-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
