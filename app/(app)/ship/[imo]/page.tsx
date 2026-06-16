@@ -713,6 +713,12 @@ export default async function ShipDetailPage({
         </div>
         </PortLoadingProvider>
 
+        {/* Disclaimer */}
+        <div className="mt-8 flex items-start gap-2.5 rounded-lg border border-border bg-surface px-4 py-3">
+          <Info size={13} className="shrink-0 mt-0.5 text-text-muted" />
+          <p className="text-xs text-text-muted leading-relaxed">{t('disclaimer.ship')}</p>
+        </div>
+
       </div>
       </FadeUp>
     </div>

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, AlertCircle } from 'lucide-react'
 import { t } from '@/lib/i18n'
+import Logo from '@/app/_components/Logo'
 import { createClient } from '@/lib/supabase/browser'
 
 const valueProps = [
@@ -67,18 +68,15 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left: brand panel */}
-      <div className="hidden lg:flex w-110 shrink-0 flex-col justify-between bg-linear-to-br from-navy-900 to-navy-700 px-12 py-16">
+      <div className="hidden lg:flex w-[520px] shrink-0 flex-col justify-between bg-linear-to-br from-navy-900 to-navy-700 px-14 py-16">
         <div>
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-14">
-            <span className="text-white font-semibold text-xl tracking-tight">
-              {t('app.name')}
-            </span>
-            <span className="h-2.5 w-2.5 rounded-full bg-accent" />
+          <div className="mb-14">
+            <Logo variant="full" tone="light" className="h-14 w-auto" />
           </div>
 
           {/* Headline */}
-          <h1 className="text-white text-2xl font-medium leading-snug mb-10">
+          <h1 className="text-white text-[30px] font-bold leading-tight mb-10">
             {t('app.tagline')}
           </h1>
 
@@ -87,7 +85,7 @@ export default function LoginPage() {
             {valueProps.map((prop) => (
               <li key={prop} className="flex items-start gap-3.5">
                 <CheckCircle2 size={18} className="text-accent mt-0.5 shrink-0" />
-                <span className="text-white/75 text-sm leading-relaxed">{prop}</span>
+                <span className="text-white/80 text-[15px] leading-relaxed">{prop}</span>
               </li>
             ))}
           </ul>
@@ -98,16 +96,15 @@ export default function LoginPage() {
 
       {/* Right: form panel */}
       <div className="flex flex-1 items-center justify-center bg-page-bg px-6 py-12">
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-[420px]">
           {/* Mobile-only logo */}
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <span className="text-text font-semibold text-xl">{t('app.name')}</span>
-            <span className="h-2 w-2 rounded-full bg-accent" />
+          <div className="mb-8 lg:hidden">
+            <Logo variant="full" tone="dark" className="h-12 w-auto" />
           </div>
 
           {/* Form card */}
-          <div className="bg-surface border border-border rounded-card p-8">
-            <h2 className="text-text text-xl font-medium mb-6">{t('login.title')}</h2>
+          <div className="bg-surface border border-border rounded-card p-8 shadow-sm">
+            <h2 className="text-text text-xl font-semibold mb-6">{t('login.title')}</h2>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>

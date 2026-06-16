@@ -155,5 +155,8 @@
 
   "cic.banner": "Active Concentrated Inspection Campaign: {topic}",
 
-  "note.fewInspections": "This vessel is new or lightly inspected — analysis is based on regional and ship-type profiles and certificate status, not historical deficiencies."
+  "note.fewInspections": "This vessel is new or lightly inspected — analysis is based on regional and ship-type profiles and certificate status, not historical deficiencies.",
+
+  "disclaimer.short": "PortReady analyses are for preparation purposes only and do not constitute an official inspection result or guarantee.",
+  "disclaimer.ship": "This analysis is for preparation purposes only and does not constitute an official inspection result or guarantee. Final responsibility lies with the vessel operator."
 }

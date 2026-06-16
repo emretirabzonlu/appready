@@ -1,4 +1,6 @@
 import { NextRequest } from 'next/server'
+import fs from 'fs'
+import path from 'path'
 import { getShipByImo, getInspectionsByShip, getDeficiencies } from '@/lib/ships'
 import type { Ship, Inspection, Deficiency } from '@/lib/ships'
 import { getPorts } from '@/lib/ports'
@@ -129,6 +131,7 @@ function buildHtml(opts: {
   inspectionRegionNames: Map<string, string>
   physicalGroupConflicts: Array<{ regionNames: string[]; date: string }>
   earliestInspYear: string | null
+  logoDataUri: string
 }): string {
   const {
     ship, rows, certificates, baselines, redFlags, sortedChecklistItems,
@@ -137,7 +140,7 @@ function buildHtml(opts: {
     inspectionCount, detentionCount, longestDetentionDays,
     riskLabel, riskClass, mouRegionId, aiSummary,
     regionBaselines, inspectionRegionNames, physicalGroupConflicts,
-    earliestInspYear,
+    earliestInspYear, logoDataUri,
   } = opts
 
   const today = new Date().toLocaleDateString('tr-TR', {
@@ -543,8 +546,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 
 .hero{background:linear-gradient(135deg,#0f2747 0%,#1a3a6e 60%,#0f4c8a 100%);color:#fff;padding:32px 40px 28px;break-inside:avoid;page-break-inside:avoid}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
-.logo{font-size:22px;font-weight:800;letter-spacing:-0.5px}
-.logo span{color:#60a5fa}
+.logo-img{display:block;height:50px;width:auto}
 .report-label{font-size:10px;color:rgba(255,255,255,.55);letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
 .risk-badge{padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700}
 .risk-danger{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.35);color:#fca5a5}
@@ -685,8 +687,8 @@ tr:last-child td{border-bottom:none}
 .ai-summary-label{font-size:8.5px;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
 .ai-summary-text{font-size:10.5px;color:#1e3a5f;line-height:1.55}
 
-.footer{margin-top:20px;padding-top:12px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;break-inside:avoid;page-break-inside:avoid}
-.footer-note{font-size:9px;color:#9ca3af;max-width:70%}
+.footer{margin-top:20px;padding-top:12px;border-top:1px solid #e2e8f0;break-inside:avoid;page-break-inside:avoid}
+.footer-note{font-size:10px;color:#6b7280;line-height:1.55;margin-bottom:6px}
 .footer-date{font-size:9px;color:#9ca3af;white-space:nowrap}
 </style>
 </head>
@@ -696,7 +698,7 @@ tr:last-child td{border-bottom:none}
 <div class="hero">
   <div class="hero-top">
     <div>
-      <div class="logo"><span>Port</span>Ready</div>
+      <img src="${logoDataUri}" alt="PortReady" class="logo-img">
       <div class="report-label">PSC Hazırlık Raporu</div>
     </div>
     <div class="risk-badge risk-${riskClass}">${esc(riskLabel)}</div>
@@ -718,7 +720,7 @@ tr:last-child td{border-bottom:none}
   ${inspectionSection}
 
   <div class="footer">
-    <span class="footer-note">Bu rapor PSC hazırlık amaçlıdır ve resmi bir denetim belgesi değildir. Veriler sistem kayıtlarına dayanmaktadır.</span>
+    <p class="footer-note">Bu rapor, kamuya açık verilere ve geçmiş kayıtlara dayanan bir hazırlık aracıdır. Resmi bir denetim, sörvey veya uygunluk garantisi değildir; denetim sonucunu garanti etmez. Bu rapordaki bilgilere dayanarak alınan kararların sorumluluğu tamamen gemi işletmecisi ve kaptana aittir. PortReady, bu rapora dayanılarak yapılan işlemlerden veya doğabilecek sonuçlardan sorumlu tutulamaz.</p>
     <span class="footer-date">Oluşturulma: ${today}</span>
   </div>
 </div>
@@ -881,6 +883,9 @@ export async function GET(
     }
   }
 
+  const svgRaw = fs.readFileSync(path.join(process.cwd(), 'public', 'logos', 'logo-full-white.svg'))
+  const logoDataUri = `data:image/svg+xml;base64,${svgRaw.toString('base64')}`
+
   const html = buildHtml({
     ship, rows, certificates, baselines, redFlags, sortedChecklistItems,
     sortedShipCats, overlapping, baselineCatSet, baselineIsFallback,
@@ -888,7 +893,7 @@ export async function GET(
     inspectionCount, detentionCount, longestDetentionDays,
     riskLabel, riskClass, mouRegionId, aiSummary,
     regionBaselines, inspectionRegionNames, physicalGroupConflicts,
-    earliestInspYear,
+    earliestInspYear, logoDataUri,
   })
 
   const browser = await launchBrowser()

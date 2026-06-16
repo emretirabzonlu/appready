@@ -58,6 +58,10 @@ export default async function FleetPage() {
         />
         <FleetTable ships={ships} />
       </FadeUp>
+
+      <p className="mt-6 text-[11px] text-text-muted text-center border-t border-border pt-4">
+        {t('disclaimer.short')}
+      </p>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Bell, User, Settings, LogOut, Search } from 'lucide-react'
 import { useT } from '@/app/_components/LocaleProvider'
+import Logo from '@/app/_components/Logo'
 import {
   DropdownRoot,
   DropdownTrigger,
@@ -47,12 +48,9 @@ export function TopNav({ userEmail }: Props) {
         {/* Logo */}
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 w-44 shrink-0 select-none group"
+          className="flex items-center w-44 shrink-0 select-none"
         >
-          <span className="text-white font-semibold text-[15px] tracking-tight group-hover:text-accent transition-colors">
-            {t('app.name')}
-          </span>
-          <span className="h-1.5 w-1.5 rounded-full bg-accent shrink-0" />
+          <Logo tone="light" className="h-10 w-auto" />
         </Link>
 
         {/* Search */}

@@ -155,5 +155,8 @@
 
   "cic.banner": "Aktif Yoğunlaştırılmış Denetim Kampanyası: {topic}",
 
-  "note.fewInspections": "Bu gemi yeni veya az denetimli — analiz, geçmiş eksikliklere değil bölge + gemi tipi profiline ve sertifika durumuna dayanıyor."
+  "note.fewInspections": "Bu gemi yeni veya az denetimli — analiz, geçmiş eksikliklere değil bölge + gemi tipi profiline ve sertifika durumuna dayanıyor.",
+
+  "disclaimer.short": "PortReady analizleri hazırlık amaçlıdır; resmi denetim sonucu veya garanti niteliği taşımaz.",
+  "disclaimer.ship": "Bu analiz hazırlık amaçlıdır; resmi bir denetim sonucu veya garanti değildir. Nihai sorumluluk gemi işletmecisine aittir."
 }

@@ -44,19 +44,19 @@ export function Sidebar() {
       transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
       className="shrink-0 bg-navy-900 flex flex-col border-r border-navy-700/60 overflow-hidden"
     >
-      {/* Toggle button */}
+      {/* Collapse toggle */}
       <div className={cn('flex h-14 items-center border-b border-navy-700/40', collapsed ? 'justify-center px-0' : 'justify-end px-3')}>
         <button
           type="button"
           onClick={() => setCollapsed((c) => !c)}
           aria-label={collapsed ? 'Genişlet' : 'Daralt'}
-          className="p-1.5 rounded-sm text-white/30 hover:text-white/70 hover:bg-white/6 transition-colors"
+          className="cursor-pointer p-2 rounded-md text-white/40 hover:text-white/80 hover:bg-white/8 transition-colors"
         >
           <motion.div
             animate={{ rotate: collapsed ? 180 : 0 }}
             transition={{ duration: 0.22 }}
           >
-            <PanelLeft size={15} />
+            <PanelLeft size={16} />
           </motion.div>
         </button>
       </div>
